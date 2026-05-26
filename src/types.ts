@@ -1,6 +1,8 @@
 export interface SurveyResponses {
   occupation: string;
   debtAmount: string;
+  monthlyIncome?: string;
+  dependentsCount?: string;
   hasMoreDebtThanAssets: string;
   region: string;
   difficulties: string[];

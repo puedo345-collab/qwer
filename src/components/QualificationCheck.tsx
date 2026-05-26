@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QUESTIONS } from '../data';
 import { SurveyResponses } from '../types';
-import { ShieldCheck, ChevronLeft, ArrowRight, User, Phone, CheckSquare, Calendar, HelpCircle, Lock } from 'lucide-react';
+import { ShieldCheck, ChevronLeft, ArrowRight, User, Phone, CheckSquare, Calendar, HelpCircle, Lock, X } from 'lucide-react';
 
 interface QualificationCheckProps {
   onComplete: (responses: SurveyResponses) => void;
@@ -15,30 +15,31 @@ export default function QualificationCheck({ onComplete, onCancel, mode = 'gener
   const [answers, setAnswers] = useState<Partial<SurveyResponses>>({
     occupation: '',
     debtAmount: '',
+    monthlyIncome: '',
+    dependentsCount: '',
     hasMoreDebtThanAssets: '',
     region: '',
     difficulties: [],
-    name: '',
-    ageGroup: '',
-    phone: ''
+    name: '고객',
+    ageGroup: '30대',
+    phone: '010-0000-0000'
   });
 
   const [formError, setFormError] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
-  const totalSteps = QUESTIONS.length + 1; // 5 questions + User form
+  const totalSteps = QUESTIONS.length;
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
   const handleSingleSelect = (key: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [key]: value }));
     
-    // Auto-advance for single-choice steps (Step 0 to 3)
+    // Auto-advance for single-choice steps (Step 0 to 5)
     if (currentStep < QUESTIONS.length - 1) {
       setTimeout(() => {
         setCurrentStep((prev) => prev + 1);
       }, 250);
-    } else {
-      setCurrentStep((prev) => prev + 1);
     }
   };
 
@@ -142,201 +143,90 @@ export default function QualificationCheck({ onComplete, onCancel, mode = 'gener
         {/* Action Content Box */}
         <div className="p-4 sm:p-8 min-h-[380px] sm:min-h-[420px] flex flex-col justify-between">
           <AnimatePresence mode="wait">
-            {currentStep < QUESTIONS.length ? (
-              // Quiz Step layout
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-6"
-              >
-                {/* Step indicator */}
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                  <span>질문 {currentStep + 1} / {QUESTIONS.length}</span>
-                  <span>•</span>
-                  <span className="text-emerald-600 font-extrabold">
-                    {mode === 'debt' 
-                      ? '📊 [계산기] 실시간 채무 탕감 시뮬레이션' 
-                      : mode === 'qualification' 
-                      ? '🔒 [자격확인] 개인회생 신청자격 무료 심사' 
-                      : '개인회생 자격 요건'}
-                  </span>
-                </div>
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              {/* Step indicator */}
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                <span>질문 {currentStep + 1} / {QUESTIONS.length}</span>
+              </div>
 
-                {/* Title & Subtitle */}
-                <div className="space-y-1.5">
-                  <h3 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                    {QUESTIONS[currentStep].title}
-                  </h3>
-                  <p className="text-[11px] sm:text-sm text-slate-500 font-bold leading-relaxed">
-                    {QUESTIONS[currentStep].subtitle}
-                  </p>
-                </div>
+              {/* Title & Subtitle */}
+              <div className="space-y-1.5">
+                <h3 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                  {QUESTIONS[currentStep].title}
+                </h3>
+                <p className="text-[11px] sm:text-sm text-slate-500 font-bold leading-relaxed">
+                  {QUESTIONS[currentStep].subtitle}
+                </p>
+              </div>
 
-                {/* Multiple Options Choice list */}
-                {QUESTIONS[currentStep].id !== 'difficulties' ? (
-                  // Single selection questions (Occupation, Debt, Asset, Region)
-                  <div className="space-y-2.5 pt-1">
-                    {QUESTIONS[currentStep].options.map((opt) => {
-                      const isSelected = getSelectedValue(QUESTIONS[currentStep].id) === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          onClick={() => handleSingleSelect(QUESTIONS[currentStep].id, opt.value)}
-                          className={`w-full p-4.5 rounded-xl border text-left font-extrabold text-sm sm:text-base tracking-tight transition-all duration-150 cursor-pointer flex justify-between items-center active:scale-[0.99] ${
+              {/* Multiple Options Choice list */}
+              {QUESTIONS[currentStep].id !== 'difficulties' ? (
+                // Single selection questions (Occupation, Debt, Asset, Region)
+                <div className="space-y-2.5 pt-1">
+                  {QUESTIONS[currentStep].options.map((opt) => {
+                    const isSelected = getSelectedValue(QUESTIONS[currentStep].id) === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleSingleSelect(QUESTIONS[currentStep].id, opt.value)}
+                        className={`w-full p-4.5 rounded-xl border text-left font-extrabold text-sm sm:text-base tracking-tight transition-all duration-150 cursor-pointer flex justify-between items-center active:scale-[0.99] ${
+                          isSelected
+                            ? 'border-emerald-600 bg-emerald-50/70 text-emerald-950 shadow-xs'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50 hover:border-slate-300/80'
+                        }`}
+                      >
+                        <span className="pr-2">{opt.label}</span>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'border-emerald-600 bg-emerald-50/70 text-emerald-950 shadow-xs'
-                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50 hover:border-slate-300/80'
+                              ? 'border-emerald-600 bg-emerald-600 text-white'
+                              : 'border-slate-300 bg-white'
                           }`}
                         >
-                          <span className="pr-2">{opt.label}</span>
-                          <div
-                            className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'border-emerald-600 bg-emerald-600 text-white'
-                                : 'border-slate-300 bg-white'
-                            }`}
-                          >
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  // Multi select question (Difficulties)
-                  <div className="space-y-2.5 pt-1">
-                    {QUESTIONS[currentStep].options.map((opt) => {
-                      const isSelected = (answers.difficulties || []).includes(opt.value);
-                      return (
-                        <button
-                          key={opt.value}
-                          onClick={() => toggleDifficulty(opt.value)}
-                          className={`w-full p-4.5 rounded-xl border text-left font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer flex items-center justify-between active:scale-[0.99] ${
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Multi select question (Difficulties)
+                <div className="space-y-2.5 pt-1">
+                  {QUESTIONS[currentStep].options.map((opt) => {
+                    const isSelected = (answers.difficulties || []).includes(opt.value);
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => toggleDifficulty(opt.value)}
+                        className={`w-full p-4.5 rounded-xl border text-left font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer flex items-center justify-between active:scale-[0.99] ${
+                          isSelected
+                            ? 'border-violet-600 bg-violet-50/60 text-violet-950 shadow-xs'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50 hover:border-slate-300/80'
+                        }`}
+                      >
+                        <span className="pr-1 text-slate-800">{opt.label}</span>
+                        <div
+                          className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'border-violet-600 bg-violet-50/60 text-violet-950 shadow-xs'
-                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50 hover:border-slate-300/80'
+                              ? 'border-violet-600 bg-violet-600 text-white'
+                              : 'border-slate-300 bg-white'
                           }`}
                         >
-                          <span className="pr-2">{opt.label}</span>
-                          <div
-                            className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'border-violet-600 bg-violet-600 text-white'
-                                : 'border-slate-300 bg-white'
-                            }`}
-                          >
-                            {isSelected && <CheckSquare className="w-3.5 h-3.5" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              // Final Step form
-              <motion.div
-                key="form-step"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                  <span className="text-violet-600 font-extrabold flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5 text-violet-600" />
-                    마지막 단계
-                  </span>
-                  <span>•</span>
-                  <span>분석 결과 수령처 입력</span>
+                          {isSelected && <CheckSquare className="w-3.5 h-3.5" />}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <div className="space-y-1.5">
-                  <h3 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                    상황별 탕감 플랜을 어디로 보낼까요?
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-relaxed">
-                    회생 법원 공식 요율표 상 맞춤 탕감 가능 비율과 월 예상 변제금을 안전하게 시뮬레이션하여 보여 드립니다.
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
-                  {/* Name field */}
-                  <div className="relative">
-                    <label className="text-[10px] font-black text-slate-500 block mb-1">신청인 성함</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="성함을 입력해 주세요"
-                        value={answers.name || ''}
-                        onChange={(e) => setAnswers((prev) => ({ ...prev, name: e.target.value }))}
-                        className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 font-extrabold text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-violet-500 focus:bg-white text-base"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Age Group */}
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 block mb-1">연령대 선택</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {['20대', '30대', '40대', '50대이상'].map((age) => (
-                        <button
-                          key={age}
-                          type="button"
-                          onClick={() => setAnswers((prev) => ({ ...prev, ageGroup: age }))}
-                          className={`py-2.5 px-1 rounded-xl border text-center font-black text-xs tracking-tight transition-all duration-150 cursor-pointer ${
-                            answers.ageGroup === age
-                              ? 'border-violet-600 bg-violet-50 text-violet-950 shadow-3xs'
-                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          {age}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Phone field */}
-                  <div className="relative">
-                    <label className="text-[10px] font-black text-slate-500 block mb-1">결과표를 받을 휴대폰 번호</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
-                      <input
-                        type="tel"
-                        placeholder="010-0000-0000"
-                        value={answers.phone || ''}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({ ...prev, phone: formatPhone(e.target.value) }))
-                        }
-                        className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 font-mono font-extrabold text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-violet-500 focus:bg-white text-base"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Privacy checkbox */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-0.5 w-4.5 h-4.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 shrink-0 cursor-pointer"
-                    />
-                    <label htmlFor="terms" className="text-[11px] font-bold text-slate-500 leading-snug cursor-pointer select-none">
-                      개인정보 수집 및 자격 진단용 상담 활용 동의 (필수)
-                      <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
-                        상담 및 탕감 통보 목적 외에 상업 광고나 무분별한 3자 유출은 절대 없습니다. (철저 보안 보장)
-                      </span>
-                    </label>
-                  </div>
-                </form>
-              </motion.div>
-            )}
+              )}
+            </motion.div>
           </AnimatePresence>
 
           {/* Navigation/Submit Controls */}
@@ -358,37 +248,126 @@ export default function QualificationCheck({ onComplete, onCancel, mode = 'gener
                 뒤로
               </button>
 
-              {currentStep < QUESTIONS.length ? (
-                // Only show "Next" for difficulties multi-select
-                QUESTIONS[currentStep].id === 'difficulties' ? (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex-1 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-black text-sm tracking-wide shadow-md shadow-emerald-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 duration-100"
-                  >
-                    다음 질문으로
-                    <ArrowRight className="w-4 h-4 text-white stroke-[2.5]" />
-                  </button>
-                ) : (
-                  <div className="flex-1 text-center py-4 text-xs text-slate-400 font-extrabold flex items-center justify-center select-none bg-slate-50 border border-dashed border-slate-200 rounded-xl leading-snug px-2">
-                    옵션을 터치하면 다음 문항으로 자동 이동됩니다.
-                  </div>
-                )
+              {currentStep < QUESTIONS.length - 1 ? (
+                <div className="flex-1 text-center py-4 text-xs text-slate-400 font-extrabold flex items-center justify-center select-none bg-slate-50 border border-dashed border-slate-200 rounded-xl leading-snug px-2">
+                  옵션을 터치하면 다음 문항으로 자동 이동됩니다.
+                </div>
               ) : (
                 // Finish button
                 <button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    setFormError('');
+                    if (!answers.difficulties || answers.difficulties.length === 0) {
+                      setFormError('최소 한 가지 이상 고민을 선택해 주세요.');
+                      return;
+                    }
+                    onComplete(answers as SurveyResponses);
+                  }}
                   className="flex-1 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-emerald-600 text-white font-black text-sm tracking-wide shadow-lg shadow-violet-200 hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 duration-100"
                 >
                   <ShieldCheck className="w-5 h-5 text-emerald-300 stroke-[2.5]" />
-                  탕감 플랜 확인하기
+                  탕감 플랜 즉시 확인하기
                 </button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Privacy Agreement Modal Overlay (Qualification Check Internal Modal) */}
+      <AnimatePresence>
+        {privacyModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPrivacyModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 z-10 text-left font-sans flex flex-col max-h-[85vh]"
+            >
+              {/* Header */}
+              <div className="bg-slate-950 text-white p-5 flex justify-between items-center border-b border-slate-800">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight">[개인정보 수집 · 이용 동의]</span>
+                <button
+                  type="button"
+                  onClick={() => setPrivacyModalOpen(false)}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed">
+                <p className="font-medium text-slate-500">
+                  상담 예약 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용하고자 하오며, 개인정보 제공자가 동의한 내용 외의 다른 목적으로 활용하지 않을 것입니다.
+                </p>
+
+                <p className="font-medium text-slate-500">
+                  다만, 동의자는 거부할 권리가 있으며, 거부시에는 서비스를 이용하실 수 없습니다.
+                </p>
+
+                {/* Styled Grid Table compliant with Korea guidelines */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden mt-2 font-sans">
+                  {/* Table Columns Heading */}
+                  <div className="grid grid-cols-3 bg-slate-50 text-slate-850 font-black text-xs text-center border-b border-slate-200 divide-x divide-slate-200 py-3">
+                    <div>목적</div>
+                    <div>항목</div>
+                    <div>보유 기간</div>
+                  </div>
+
+                  {/* Table Row */}
+                  <div className="grid grid-cols-3 divide-x divide-slate-100 font-medium text-[11px] sm:text-xs text-slate-600 bg-white min-h-[140px]">
+                    {/* Purpose column */}
+                    <div className="p-4 flex items-center justify-center bg-white text-center">
+                      <span className="font-extrabold text-slate-800 text-[11px] sm:text-xs leading-normal">
+                        전화 상담, 카카오톡 상담 서비스 제공
+                      </span>
+                    </div>
+
+                    {/* Data values column */}
+                    <div className="p-4 flex items-center justify-center bg-white text-slate-700 font-extrabold text-[11px]">
+                      (필수) 연락처
+                    </div>
+
+                    {/* Retention period column */}
+                    <div className="p-4 flex flex-col justify-center space-y-2 bg-white">
+                      <div className="font-black text-slate-900 text-sm">1년</div>
+                      <p className="text-[10px] text-slate-400 leading-normal font-sans">
+                        단,개인정보 제공 관련 법령에 따라 보존해야하는 경우에는 법령에서 규정한 기간 동안 보관.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Footer with single confirmation button matching the image */}
+              <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgreeTerms(true);
+                    setPrivacyModalOpen(false);
+                  }}
+                  className="w-36 py-3 bg-[#3F4E65] hover:bg-slate-800 text-white font-black text-xs sm:text-sm rounded-md shadow-md transition-all text-center cursor-pointer tracking-wider"
+                >
+                  확인
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

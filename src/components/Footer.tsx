@@ -1,7 +1,11 @@
 import React from 'react';
 import { Scale, PhoneCall, HelpCircle, ShieldCheck } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  onAdminClick?: () => void;
+}
+
+export default function Footer({ onAdminClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -14,8 +18,9 @@ export default function Footer() {
             <h4 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               필요한 만큼, 꼭 필요한 방식으로
             </h4>
-            <p className="text-xs text-slate-400 font-semibold max-w-sm">
-              나에게 딱 맞는 채무 탕감 맞춤 설계를 만나보세요. 1:1 비밀 수임 보장 및 법무사 여환동 직접 밀착 서포트와 함께 일어섭니다.
+            <p className="text-xs text-slate-400 font-semibold max-w-sm whitespace-pre-line">
+              나에게 딱 맞는 채무 탕감 맞춤 설계를 만나보세요.{"\n"}
+              비밀 수임 보장 및 법무사 여환동 1:1 직접 밀착 서포트와 함께 일어섭니다.
             </p>
           </div>
 

@@ -7,9 +7,10 @@ import { Scale, HeartHandshake, PhoneCall, CheckCircle, ArrowRight, ShieldCheck,
 interface ResultDashboardProps {
   responses: SurveyResponses;
   onRestart: () => void;
+  onGoToMain: () => void;
 }
 
-export default function ResultDashboard({ responses, onRestart }: ResultDashboardProps) {
+export default function ResultDashboard({ responses, onRestart, onGoToMain }: ResultDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [stepMsg, setStepMsg] = useState('가입 심사 데이터 확인 중...');
 
@@ -65,17 +66,124 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
         break;
     }
 
-    // Determine basic reduction rate starting point
-    let reductionRate = 75; // Average baseline
-
-    // Occupation adjustments
-    if (responses.occupation === 'regular_employee') {
-      reductionRate += 5; // Premium steady jobs are easy
-    } else if (responses.occupation === 'no_income') {
-      reductionRate -= 15; // Low/no income might require specialized adjustment
+    // --- 2026 Minimum Cost of Living Calculation Integration ---
+    // 1. Determine monthly income based on selected range or fallbacks
+    let estimatedIncome = 2500000;
+    if (responses.monthlyIncome) {
+      switch (responses.monthlyIncome) {
+        case 'under_150':
+          estimatedIncome = 1300000;
+          break;
+        case '150_200':
+          estimatedIncome = 1750000;
+          break;
+        case '200_300':
+          estimatedIncome = 2500000;
+          break;
+        case '300_400':
+          estimatedIncome = 3500000;
+          break;
+        case 'over_400':
+          estimatedIncome = 4500000;
+          break;
+        default:
+          estimatedIncome = 2500000;
+      }
+    } else {
+      switch (responses.occupation) {
+        case 'regular_employee':
+          estimatedIncome = 2800000;
+          break;
+        case 'non_regular_employee':
+          estimatedIncome = 2400000;
+          break;
+        case 'business_owner':
+          estimatedIncome = 3200000;
+          break;
+        case 'freelancer_parttime':
+          estimatedIncome = 1950000;
+          break;
+        case 'no_income':
+          estimatedIncome = 1200000;
+          break;
+      }
     }
 
-    // Asset checks
+    // 2. Determine dependents count based on selection or fallback
+    let estimatedDependents = 1;
+    if (responses.dependentsCount) {
+      switch (responses.dependentsCount) {
+        case '1':
+          estimatedDependents = 1;
+          break;
+        case '2':
+          estimatedDependents = 2;
+          break;
+        case '3':
+          estimatedDependents = 3;
+          break;
+        case '4_plus':
+          estimatedDependents = 4;
+          break;
+        default:
+          estimatedDependents = 1;
+      }
+    } else {
+      if (responses.ageGroup === '40대') {
+        estimatedDependents = 2; // Default for middle aged
+      }
+    }
+
+    // 2026 Statutory minimum living cost index guideline (60% of median income)
+    const getMinLivingCost = (count: number) => {
+      switch (count) {
+        case 1: return 1538543;
+        case 2: return 2519575;
+        case 3: return 3215422;
+        case 4: return 3896843;
+        case 5: return 4534031;
+        case 6: return 5133571;
+        case 7: return 5709090;
+        default: return 5709090 + (count - 7) * 575519;
+      }
+    };
+
+    const livingCost = getMinLivingCost(estimatedDependents);
+
+    // 3. Estimate net asset value (liquidation value) based on assets question & total debt
+    let estimatedNetAsset = 10000000;
+    if (responses.hasMoreDebtThanAssets === 'yes') {
+      estimatedNetAsset = Math.round(mockTotalDebt * 0.1); // Small assets, 10% of debt
+    } else if (responses.hasMoreDebtThanAssets === 'similar') {
+      estimatedNetAsset = Math.round(mockTotalDebt * 0.75); // Assets are 75% of debt
+    } else if (responses.hasMoreDebtThanAssets === 'no') {
+      estimatedNetAsset = Math.round(mockTotalDebt * 1.15); // Assets are 115% of debt (exceeds debt)
+    }
+
+    // 4. Calculate available monthly repayment & total repayment
+    const surplusIncome = estimatedIncome - livingCost;
+    const monthlyRequiredByAsset = Math.ceil(estimatedNetAsset / 36);
+    const absoluteMinRepayment = 150000;
+
+    const availableRepayment = Math.max(
+      surplusIncome,
+      monthlyRequiredByAsset,
+      absoluteMinRepayment
+    );
+
+    const totalRepaymentRaw = availableRepayment * 36;
+    const totalRepayment = Math.min(mockTotalDebt, totalRepaymentRaw);
+
+    // Compute basic reduction rate starting point from law simulation
+    const totalSavings = Math.max(0, mockTotalDebt - totalRepayment);
+    let reductionRate = mockTotalDebt > 0 ? Math.round((totalSavings / mockTotalDebt) * 100) : 0;
+
+    // Apply baseline adjustments based on difficulty or professional support triggers
+    if (responses.difficulties.includes('high_interest') || responses.difficulties.includes('overwhelming_harassment')) {
+      reductionRate = Math.min(90, reductionRate + 5); // legal maximum up to 90
+    }
+
+    // Asset checks (Hard law constraints)
     let warningMsg = '';
     let eligibilityGrade = '우수 (A등급)';
     let progressColor = 'bg-emerald-500';
@@ -84,13 +192,13 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
 
     if (responses.hasMoreDebtThanAssets === 'no') {
       reductionRate = 0; // Asset greater than debt is legally blocked
-      warningMsg = '※ 주의: 보유 자산 가치 총합이 채무액보다 큰 경우, 개인회생 자격이 제한되거나 청산가치 보장 원칙에 따라 매월 상환액이 조정되어 탕감폭이 없거나 기각될 위험이 높습니다. 다만 재산 산정에서 무이자 담보 채무 및 임차보증금 면제 한도가 적용되므로 전문 변호인과 특별 감액 보정을 상담하시는 것이 안전합니다.';
+      warningMsg = '※ 주의: 보유 자산 가치 총합이 채무액보다 큰 경우, 개인회생 자격이 제한되거나 청산가치 보장 원칙에 따라 매월 상환액이 조정되어 탕감폭이 없거나 기각될 위험이 높습니다. 다만 재산 산정에서 무이자 담보 채무 및 임차보증금 면제 한도가 적용되므로 전문 법무사와 청산가치 감액에 관한 상담을 권장합니다.';
       eligibilityGrade = '기각 우려 (상담 필히 요망)';
       progressColor = 'bg-amber-500';
       textColor = 'text-amber-700';
       ringColor = 'ring-amber-100';
     } else if (responses.hasMoreDebtThanAssets === 'similar') {
-      reductionRate -= 10;
+      reductionRate = Math.max(10, Math.min(50, reductionRate - 15)); // asset-heavy cases gets capped/reduced
       warningMsg = '※ 안내: 재산과 빚이 비슷한 수준이면, 청산가치 평가 보정 내용에 따라 탕감율이 낮아질 수 있습니다. 재산 보정을 최소화하는 법리 전개로 탕감율을 끌어올려야 합니다.';
       eligibilityGrade = '검토 가능 (B등급)';
       progressColor = 'bg-blue-500';
@@ -103,7 +211,7 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
         progressColor = 'bg-indigo-600';
         textColor = 'text-indigo-700';
         ringColor = 'ring-indigo-100';
-        reductionRate += 5;
+        reductionRate = Math.min(90, reductionRate + 5);
       }
     }
 
@@ -118,7 +226,9 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
     }
 
     // Enforce bound limit
-    reductionRate = Math.max(10, Math.min(90, reductionRate));
+    if (reductionRate > 0) {
+      reductionRate = Math.max(10, Math.min(90, reductionRate));
+    }
 
     const mockReducedDebt = Math.round(mockTotalDebt * (1 - reductionRate / 100));
     const mockMonthlyPayment = Math.round(mockReducedDebt / 36);
@@ -320,19 +430,19 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
           <div className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-gradient-to-b from-white to-slate-50/50 space-y-2">
             <span className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest block">36개월 월 예상 변제금</span>
             <p className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-              {est.reductionRate > 0 ? `월 약 ${est.monthlyPaymentStr}` : '진단 보정 필요'}
+              {est.reductionRate > 0 ? `월 약 ${est.monthlyPaymentStr}` : '전문 상담 요망'}
             </p>
             <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
-              ※ 법률 보정을 통해 본인포함 기본생계비(최소 125만원 이상) 보장 소득 공제 후 부담 범위
+              ※ 개인회생을 통해 본인이 매월 부담해야 하는 변제 금액 (2026년 최저생계비 기준 적용 시뮬레이션)
             </p>
           </div>
 
           <div className="p-4 sm:p-5 rounded-2xl border border-violet-100 bg-violet-50/30 space-y-2">
-            <span className="text-[10px] sm:text-[11px] font-black text-violet-700 uppercase tracking-widest block">법무사 여환동의 직접 안심 케어</span>
+            <span className="text-[10px] sm:text-[11px] font-black text-violet-700 uppercase tracking-widest block">법무사 여환동의 안심 케어</span>
             <ul className="text-[11px] text-slate-700 font-bold space-y-1">
-              <li className="flex items-center gap-1.5">• 3일 내 법원 채무추심 금지명령 접수</li>
-              <li className="flex items-center gap-1.5">• 주식/코인 거주지역 맞춤 청산가치 상쇄 보정</li>
-              <li className="flex items-center gap-1.5">• 자택/회사 본가 우편 노출 안심 대리수령</li>
+              <li className="flex items-center gap-1.5">• 3~5일내 추심 금지명령 발령</li>
+              <li className="flex items-center gap-1.5">• 주식/코인 투자 손실금 청산가치 최저 보장</li>
+              <li className="flex items-center gap-1.5">• 자택/회사 등 우편 노출 안심, 대리 수령</li>
             </ul>
           </div>
         </div>
@@ -389,34 +499,21 @@ export default function ResultDashboard({ responses, onRestart }: ResultDashboar
         </div>
       </div>
 
-      {/* Recommended Live Compliment Call card */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-radial-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
-        <div className="relative z-10 space-y-2 text-center md:text-left">
-          <h3 className="text-xl sm:text-2xl font-black leading-snug">
-            정밀 분석 및 법원 신청 패키지 무상 예약
-          </h3>
-          <p className="text-xs sm:text-sm text-emerald-100 font-bold">
-            안내 결과를 바탕으로 1:1 전담 전문 법률 대리인이 정식 유선 진단을 바로 지원해 드립니다.
-          </p>
-        </div>
-
-        <div className="relative z-10 flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-          <a
-            href="tel:052-933-5679"
-            className="flex-1 sm:flex-initial px-5 py-3.5 bg-white text-slate-900 font-black text-sm rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
-          >
-            <PhoneCall className="w-4 h-4 text-emerald-600 animate-bounce" />
-            052-933-5679 연결
-          </a>
-          <button
-            onClick={onRestart}
-            className="px-5 py-3.5 bg-transparent border border-white/40 text-white font-bold text-sm rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4" />
-            다시 진단하기
-          </button>
-        </div>
+      {/* Action Buttons Block */}
+      <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center pt-4">
+        <button
+          onClick={onRestart}
+          className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+        >
+          <RefreshCw className="w-4 h-4" />
+          다시 진단하기
+        </button>
+        <button
+          onClick={onGoToMain}
+          className="w-full sm:w-auto px-10 py-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+        >
+          <span>메인화면 가기</span>
+        </button>
       </div>
 
     </div>

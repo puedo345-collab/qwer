@@ -3,20 +3,43 @@ import { SuccessStory, FAQItem } from './types';
 export const QUESTIONS = [
   {
     id: 'occupation',
-    title: '현재 직업이나 소득 형태가 어떻게 되시나요?',
-    subtitle: '개인회생은 정기적이고 반복적인 소득(최저생계비 이상)이 있을 때 신청 가능합니다.',
+    title: '현재 직업이나 소득 형태?',
+    subtitle: '정기적이고 계속적인 소득이 있어야 합니다.',
     options: [
       { value: 'regular_employee', label: '일반 직장인 (4대 보험 가입)' },
       { value: 'non_regular_employee', label: '일반 직장인 (4대 보험 미가입)' },
-      { value: 'business_owner', label: '개인사업자 / 법인대표' },
+      { value: 'business_owner', label: '개인사업자 / 자영업자' },
       { value: 'freelancer_parttime', label: '프리랜서 / 일용직 / 아르바이트' },
       { value: 'no_income', label: '현재 소득 없음 (무직, 주부, 학생 등)' }
     ]
   },
   {
+    id: 'monthlyIncome',
+    title: '실제 월 평균 소득 범위는 어떻게 되시나요?',
+    subtitle: '세후 실수령액 기준의 대략적인 월 평균 소득을 선택해 주세요.',
+    options: [
+      { value: 'under_150', label: '150만 원 미만' },
+      { value: '150_200', label: '150만 원 ~ 200만 원' },
+      { value: '200_300', label: '200만 원 ~ 300만 원' },
+      { value: '300_400', label: '300만 원 ~ 400만 원' },
+      { value: 'over_400', label: '400만 원 이상' }
+    ]
+  },
+  {
+    id: 'dependentsCount',
+    title: '본인을 포함한 총 부양가족 수는 몇 명인가요?',
+    subtitle: '부양가족이 많을수록 인정받는 최저생계비가 커져 변제금이 낮아집니다.',
+    options: [
+      { value: '1', label: '1명 (본인 단독)' },
+      { value: '2', label: '2명 (본인 포함)' },
+      { value: '3', label: '3명 (본인 포함)' },
+      { value: '4_plus', label: '4명 이상 (본인 포함)' }
+    ]
+  },
+  {
     id: 'debtAmount',
-    title: '총 채무액(신용대출, 보증, 사채, 주식 등)은 어느 정도인가요?',
-    subtitle: '개인회생은 무담보 채무 10억 원, 담보 채무 15억 원 이하일 때 신청할 수 있으며, 최소 1,000만 원 이상 권장됩니다.',
+    title: '총 채무액(신용·보증채무 등)은 얼마인가요?',
+    subtitle: '무담보채무 10억, 담보채무 15억 이하로서, 1천만원 이상 권장입니다.',
     options: [
       { value: 'under_10m', label: '1,000만 원 미만' },
       { value: '10m_30m', label: '1,000만 원 ~ 3,000만 원' },
@@ -27,8 +50,8 @@ export const QUESTIONS = [
   },
   {
     id: 'hasMoreDebtThanAssets',
-    title: '보유하신 총 재산이 총 채무보다 확실히 적으신가요?',
-    subtitle: '본인 소유 예적금, 부동산, 임차보증금, 자동차 등의 가치 합산이 채무 총액보다 적어야 자격이 충족됩니다.',
+    title: '보유하신 총 재산이 총 채무보다 적은가요?',
+    subtitle: '예적금, 부동산, 보증금, 자동차 등의 가액 합산이 채무보다 적어야 합니다.',
     options: [
       { value: 'yes', label: '네, 채무가 재산보다 훨씬 많습니다.' },
       { value: 'no', label: '아니오, 재산이 채무보다 더 많습니다.' },
@@ -38,17 +61,17 @@ export const QUESTIONS = [
   {
     id: 'region',
     title: '현재 거주하고 계시는 지역은 어디인가요?',
-    subtitle: '거주 지역의 관할 회생법원 성향에 따라 심사 기준과 탕감 플랜 가이드라인이 다르게 결정됩니다.',
+    subtitle: '거주지역 관할 회생법원 성향에 따라 심사 기준이 다르게 결정됩니다.',
     options: [
-      { value: 'seoul_metropolitan', label: '서울 / 수도권 (인천, 경기 일대)' },
-      { value: 'metropolitan_city', label: '5대 광역시 (부산, 대구, 대전, 광주, 울산, 세종)' },
-      { value: 'other_region', label: '강원 / 충청 / 전라 / 경상 / 제주 등 기타 지역' }
+      { value: 'seoul_metropolitan', label: '울산광역시 / 양산시' },
+      { value: 'metropolitan_city', label: '서울 / 광역시(부산, 대구, 대전, 광주, 세종)' },
+      { value: 'other_region', label: '그외 지역(강원, 충청, 전라, 경상 등)' }
     ]
   },
   {
     id: 'difficulties',
-    title: '현재 본인 상황과 가장 일치하는 고민은 무엇인가요?',
-    subtitle: '어려움을 느끼는 상황에 맞춤형 집중 탕감 가이드를 대시보드에 구성해 드립니다. (중복 선택 가능)',
+    title: '현재 본인 상황과 가장 일치하는 고민은?',
+    subtitle: '상황에 맞춤형 탕감 가이드를 구성해 드립니다.(중복 선택 가능)',
     options: [
       { value: 'recent_loans', label: '최근 대출 및 카드 돌려막기 대폭 증가' },
       { value: 'overwhelming_harassment', label: '채무 독촉 및 빚 추심, 압류의 위협과 스트레스' },

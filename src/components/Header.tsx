@@ -11,7 +11,7 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
 
   const navItems = [
     { id: 'brand', label: '법무사 소개' },
-    { id: 'stories', label: '개인회생 신청자격' },
+    { id: 'stories', label: '신청자격 (회생·파산)' },
     { id: 'our-spirit', label: '상황별 클리닉케어' },
     { id: 'faq', label: '자주 묻는 질문' }
   ];
@@ -26,8 +26,8 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
               <Scale className="w-5.5 h-5.5" />
             </div>
             <div>
-              <span className="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-violet-700 bg-clip-text text-transparent block leading-tight">
-                울산 개인회생<br />법무사 여환동
+              <span className="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-violet-700 bg-clip-text text-transparent block leading-tight border-b-0">
+                법무사 여환동 사무소
               </span>
             </div>
           </div>
