@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import SuccessCaseMatcher from './components/SuccessCaseMatcher';
 import RepaymentPlanBuilder from './components/RepaymentPlanBuilder';
 import { motion, AnimatePresence } from 'motion/react';
-import { Scale, HeartHandshake, ShieldCheck, Info, X, Sparkles, MessageCircle, Phone } from 'lucide-react';
+import { Scale, HeartHandshake, ShieldCheck, Info, X, Sparkles, MessageCircle } from 'lucide-react';
 
 export default function App() {
   const [surveyActive, setSurveyActive] = useState(false);
@@ -34,13 +34,38 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (sectionId === 'brand' || sectionId === 'service') {
       setBrandPopupActive(true);
-    } else if (sectionId === 'stories' || sectionId === 'our-spirit') {
-      eligibilityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (sectionId === 'stories') {
+      setSurveyActive(false);
+      setCaseMatcherActive(false);
+      setPlanSimulatorActive(false);
+      setUserResponses(null);
+      setTimeout(() => {
+        eligibilityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    } else if (sectionId === 'our-spirit') {
+      setSurveyActive(false);
+      setCaseMatcherActive(false);
+      setPlanSimulatorActive(false);
+      setUserResponses(null);
+      setTimeout(() => {
+        const el = document.getElementById('our-spirit');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          eligibilityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 80);
     } else if (sectionId === 'faq') {
-      const faqEl = document.getElementById('faq');
-      if (faqEl) {
-        faqEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      setSurveyActive(false);
+      setCaseMatcherActive(false);
+      setPlanSimulatorActive(false);
+      setUserResponses(null);
+      setTimeout(() => {
+        const faqEl = document.getElementById('faq');
+        if (faqEl) {
+          faqEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 80);
     }
   };
 
@@ -131,13 +156,13 @@ export default function App() {
                     <div className="text-center mb-10">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 border border-blue-200 text-xs font-extrabold text-blue-900 shadow-3xs">
                         <Sparkles className="w-3.5 h-3.5 text-blue-700 animate-spin" />
-                        <span>추가 특화 서비스 단독 탑재</span>
+                        <span>실시간 변제금 확인 서비스</span>
                       </div>
                       <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight mt-3">
                         맞춤형 월 변제 상환계획기
                       </h3>
-                      <p className="mt-2.5 text-xs sm:text-sm text-slate-500 font-bold max-w-lg mx-auto leading-relaxed">
-                        법무사 여환동 자격진단 특별 환산 기준을 적용하여, 본인의 소득과 최소 생계비 기준에 맞는 실시간 월 환산 변제금을 직접 편리하게 변경하며 설계해 보세요.
+                      <p className="mt-2.5 text-xs sm:text-sm text-slate-500 font-bold max-w-lg mx-auto leading-relaxed whitespace-pre-line">
+                        본인의 소득과 최저생계비 기준에 맞는{"\n"}월 가용소득(변제금)을{"\n"}실시간 설계하며 확인해 보세요.
                       </p>
                     </div>
 
@@ -161,12 +186,12 @@ export default function App() {
                 <div className="text-center mb-6 px-4">
                   <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                     {surveyMode === 'debt' 
-                      ? '법무사 여환동 채무 탕감 시뮬레이션 계산기' 
+                      ? '실시간 채무 탕감 시뮬레이션 계산기' 
                       : '법무사 여환동 개인회생 자격 정밀 진단'}
                   </h2>
                   <p className="text-xs text-slate-500 font-bold mt-1.5 max-w-sm mx-auto">
                     {surveyMode === 'debt'
-                      ? '국세청 소득 가이드라인 및 회생 특별 기준을 적용하여 예상 원금 면제액을 즉시 계산합니다.'
+                      ? '2026년 최신 소득 및 생계비 기준을 적용해 원금 탕감비율을 즉시 계산합니다.'
                       : '법률 실무 준칙 및 기각 선례 분석 알고리즘에 기초하여 실시간 탕감 한도를 산출합니다.'}
                   </p>
                 </div>
@@ -286,20 +311,20 @@ export default function App() {
                 
                 <div className="space-y-1.5">
                   <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    법무사 여환동 사무소 및 서비스 소개
+                    법무사 여환동 사무소 소개
                   </h3>
                   <p className="text-xs text-emerald-600 font-extrabold flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                    신속하고 정확한 고품격 법률 조력의 약속
+                    울산지방법원 맞춤 개인회생 진행
                   </p>
                 </div>
 
                 <div className="space-y-3.5 text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                   <p>
-                    <strong>법무사 여환동 사무소</strong>는 과도한 부채의 힘겨운 굴레로부터 벗어나, 평온한 일상과 떳떳하고 안전한 사회 경제인으로 신속하게 복귀할 수 있도록 정성을 다해 돕습니다.
+                    울산법원앞에 위치하면서 울산 거주자들의 개인회생 사건을 처리해 온지 14년동안 약 1,000건 이상의 인가결정을 얻어내 실전 경험이 풍부한 법무사가 직접 상담 및 진행하는 사무실입니다.
                   </p>
                   <p>
-                    법무사 여환동 사무소가 의뢰자 한 분 한 분의 소득 구간, 자산 비율, 거주 지역 회생 법원의 최신 면책 실무 기준을 정교하게 분석하여, 독촉 중단과 높은 부채 원금 탕감을 이끌어 냅니다.
+                    대표 법무사 여환동이 의뢰인 한 분 한 분의 월 평균 소득 산출, 보유하고 있는 순자산 가액, 최근대출의 소명 방법, 부동산 및 보유 자산의 처리 방법 등을 직접 검토한 다음, 채권자목록·변제계획안·수입및지출에관한목록·재산목록·진술서 등을 직접 작성해, 신청부터 개시결정 및 인가결정까지 직접 챙기고 있는 사무실입니다.
                   </p>
                 </div>
 
@@ -327,31 +352,16 @@ export default function App() {
       </AnimatePresence>
 
       {/* Floating Action Buttons Area */}
-      <div className="fixed right-4 bottom-20 sm:bottom-6 z-40 flex flex-col gap-2 items-end animate-fade-in" id="floating-consultation-buttons">
+      <div className="fixed right-4 bottom-4 z-50 animate-fade-in" id="floating-consultation-buttons">
         {/* KakaoTalk Float Button */}
         <a
           href="http://pf.kakao.com/_xhTqgG/chat"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center shrink-0 cursor-pointer bg-[#FEE500] hover:bg-[#FDD100] pl-3.5 pr-4 py-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 duration-100 transition-all border border-amber-300/60 text-[#3C1E1E] gap-2 select-none group"
+          className="flex items-center justify-center w-14 h-14 shrink-0 cursor-pointer bg-[#FEE500] hover:bg-[#FDD100] rounded-full shadow-2xl hover:scale-110 active:scale-95 duration-100 transition-all border border-amber-300/60 text-[#3C1E1E] select-none"
           title="법무사 카카오톡 1:1 실시간 상담"
         >
-          <MessageCircle className="w-5 h-5 fill-[#3C1E1E]/15 stroke-[2.3]" />
-          <span className="text-xs font-black tracking-tight leading-none text-[#3C1E1E]">
-            카톡 실시간 상담
-          </span>
-        </a>
-
-        {/* Professional Call Float Button */}
-        <a
-          href="tel:010-3120-3557"
-          className="flex items-center shrink-0 cursor-pointer bg-emerald-600 hover:bg-emerald-500 pl-3.5 pr-4 py-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 duration-100 transition-all text-white gap-2 select-none group"
-          title="법무사 다이렉트 전화 상담"
-        >
-          <Phone className="w-4 h-4 stroke-[2.5]" />
-          <span className="text-xs font-black tracking-tight leading-none">
-            법무사 전화 연결
-          </span>
+          <MessageCircle className="w-7 h-7 fill-[#3C1E1E]/15 stroke-[2.3]" />
         </a>
       </div>
     </div>

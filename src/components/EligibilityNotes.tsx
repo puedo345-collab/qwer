@@ -9,28 +9,28 @@ export default function EligibilityNotes() {
 
   const chipContent = [
     {
-      title: '최근 대출이 많아요',
+      title: '최근 1년이내 대출',
       tag: '최근 신규 대출 및 고금리 다중채무',
-      desc: '신규 채무 비중이 크더라도(예: 1년 이내 50% 이상) 이자를 수속 상환하고 있었다면 진행이 충분히 가능합니다. 고 이자 채무를 온전히 법적 조정하여 원금 감축과 납입이자 전액 탕감을 동시에 보장해 드립니다.',
-      points: ['고이율 대부업 채무도 원금 탕감 가능', '돌려막기를 통한 채무 고착 상태 중단', '법원 특별 보정을 통해 최근 대출 소명']
+      desc: '단순히 최근에 발생한 채무(예: 1년 이내 50% 이상)라는 이유로 기각 되지 않습니다. 중요한 건 대출의 사용처이므로 정당한 곳에 사용하였다는 것을 성실히 소명하는 방법을 찾아 최소한의 청산가치 반영과 월 변제금으로 맞추어 드립니다.',
+      points: ['고이율 대부업 채무나 개인 사채도 원금 탕감 가능', '대출이나 신용카드 돌려막기 중단', '저희 사무소의 노하우로 최근대출 소명']
     },
     {
-      title: '독촉 스트레스가 심해요',
+      title: '추심·독촉 스트레스',
       tag: '전화 독촉, 자택 방문, 급여 가압류 중단',
-      desc: '법원에 개인회생 절차 개시 신청서를 접수할 때 \'금지명령\'과 \'중지명령\'을 즉각 병합 신청합니다. 법원 결정서가 채권사(은행, 카드사 등)에 도달하면 모든 전화, 문자 추심 및 재산 압류가 법적으로 전면 봉쇄됩니다.',
-      points: ['접수 후 영업일 기준 3~5일 내 독촉 전면 금지', '이미 개시된 유선/자택 방문 추심 효력 소멸', '급여 및 통장 압류 진행 건 즉시 집행 해제 신청']
+      desc: '법원에 개인회생 절차 개시 신청서 접수 시 \'금지명령 신청서\'를 함께 접수합니다. 법원의 금지명령 결정문이 채권사(은행, 카드사 등)에 도달하면 모든 전화 및 추심 업무, 통장·월급 등에 대한 압류가 전면 금지됩니다.',
+      points: ['접수 후 평균 3~5일 이내 압류등 전면 금지', '전화/자택방문 추심 모두 금지', '급여 및 통장 압류 등 강제집행 금지']
     },
     {
-      title: '투자 채무가 있어요',
+      title: '주식·코인 투자 채무',
       tag: '주식, 가상화폐(코인), 선물옵션, 사설도박',
       desc: '서울회생법원을 비롯한 각급 회생법원의 실무 준칙 개정으로, 투자 실패로 인한 손실액을 채무자의 청산가치(보유재산)에 산입하지 않는 판결 선례가 이어지고 있습니다. 이로 인해 과거 대비 현격히 많은 탕감 수혜를 누리실 수 있습니다.',
-      points: ['코인/주식 투자가 원인이라도 도덕성 결함 기각 불가', '투자로 소진된 법원 청산가치 합산율 면제 보정', '도박 채무 역시 법원 요율 적용 대상에 합당']
+      points: ['코인/주식 투자라도 도덕성 결함으로 기각 불가', '투자 손실금 청산가치 반영 최소화', '도박에 사용한 채무도 인가가능']
     },
     {
-      title: '가족 몰래 진행하고 싶어요',
+      title: '배우자 몰래 진행',
       tag: '1:1 비밀 수임 보장 및 전담 대리 송달',
-      desc: '법원에서 송달하는 일체의 진행사항 고지서, 회생서류 및 우편물은 의뢰인 본가의 주소지가 아닌, 법무사 여환동 사무소의 주소지로 100% 안전하게 대리 송달됩니다. 이에 따라 개인적인 상황이 외부에 노출되는 불상사를 완벽히 사전에 차단합니다.',
-      points: ['모든 부채 확인 수집 절차 비대면 대리 처리', '직장 통지나 회사 내규 불이익 원천 방지', '배우자 및 가족 몰래 정기 우편 안심 가림']
+      desc: '법원에서 송달하는 일체의 보정명령문·채권자 이의신청서·결정문 등을 법무사여환동사무소의 주소지로 100% 안전하게 대리 송달됩니다. 이에 따라 개인적인 상황이 외부에 노출되는 불상사를 사전에 차단합니다.',
+      points: ['채권사 부채확인 절차를 대리해 처리', '직장 통지로 인한 불이익 원천 차단', '법원 우편물 100% 대리 수령']
     }
   ];
 
@@ -47,7 +47,7 @@ export default function EligibilityNotes() {
             개인회생 신청 자격 안내
           </h2>
           <p className="text-xs sm:text-base text-slate-500 font-medium max-w-xl mx-auto leading-relaxed px-2">
-            4대 보험 가입자, 계약직, 아르바이트 관계없이 기본 3가지 요건만 충족하면 법적 조정을 진행할 수 있습니다.
+            4대 보험 가입자, 일용직, 계약직, 아르바이트, 자영업자, 프리랜서 관계없이 기본 3가지 요건만 충족하면 개인회생을 진행할 수 있습니다.
           </p>
         </div>
 
@@ -58,9 +58,9 @@ export default function EligibilityNotes() {
               01
             </div>
             <div className="space-y-1.5 text-left">
-              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">직업 무관 및 소득 여부</h4>
+              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">꾸준한 소득 발생 여부</h4>
               <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-normal">
-                4대 보험 미가입 대표자, 프리랜서, 신용회복 지원 중인 청년도 반복적 소득이 최저생계비 이상 있다면 신청 가능합니다.
+                직업의 종류와는 관계없이 인가 된 변제계획안 기간(통상 36개월) 동안 월 가용소득(변제금)을 꾸준히 납부할 수 있는 소득만 있으면 가능합니다. 예를 들어 최저생계비 이상의 소득이 있다면 인가를 받을 수 있습니다.
               </p>
             </div>
           </div>
@@ -70,9 +70,9 @@ export default function EligibilityNotes() {
               02
             </div>
             <div className="space-y-1.5 text-left">
-              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">총 채무액 규모 (1천만원 이상)</h4>
+              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">채무 합계액 한도</h4>
               <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-normal">
-                무담보 채무(신용 대출, 카드 연체) 10억 이하, 담보 채무(아파트 담보 대출) 15억 이하로 1천만 원 이상이면 진행 실익이 아주 높습니다.
+                무담보 채무(신용 대출, 신용카드 연체대금 등) 10억 이하, 담보 채무(아파트·주택 담보 채무, 자동차 담보 채무 등) 15억 이하 이면서, 너무 소액의 채무는 인가 가능성이 낮으므로 약 1천만 원 이상의 채무가 있으면 됩니다.
               </p>
             </div>
           </div>
@@ -82,16 +82,16 @@ export default function EligibilityNotes() {
               03
             </div>
             <div className="space-y-1.5 text-left">
-              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">보유 재산보다 채무 초과</h4>
+              <h4 className="font-extrabold text-slate-800 text-sm sm:text-base">보유한 재산보다 채무가 많아야</h4>
               <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-normal">
-                채무자가 지닌 주택 보증금, 자동차 시세 등 보유 중인 순자산 감정액 총합이 총 빚의 가치보다 적을 경우에 대상이 됩니다.
+                채무자가 보유하고 있는 부동산이나 자동차 등의 시세 가액이, 채무자가 부담하고 있는 채무(담보채무 제외) 보다 적을 경우에 개인회생 대상이 됩니다. 다만, 재산의 가액 산정 시 시세에서 담보 채무를 뺀 나머지를 재산 가액으로 산정해야 합니다.
               </p>
             </div>
           </div>
         </div>
 
         {/* Accordions for Key Concerns Chips */}
-        <div className="space-y-4 pt-4 border-t border-slate-100 text-center">
+        <div id="our-spirit" className="scroll-mt-24 md:scroll-mt-28 space-y-4 pt-4 border-t border-slate-100 text-center">
           <div>
             <span className="text-[10px] sm:text-xs font-black text-violet-600 bg-violet-50 px-3 py-1 rounded-full border border-violet-100">
               핵심 상황별 집중 클리닉 케어
@@ -149,7 +149,7 @@ export default function EligibilityNotes() {
         </div>
 
         {/* Accordion FAQ Area ("세상의 이야기") */}
-        <div id="faq" className="space-y-4 pt-12 border-t border-slate-100">
+        <div id="faq" className="scroll-mt-24 md:scroll-mt-28 space-y-4 pt-12 border-t border-slate-100">
           <div className="text-center space-y-1">
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">자주 묻는 질문</h3>
             <p className="text-xs text-slate-500 font-bold">법무사 여환동 사무소에 의뢰하시는 많은 분들이 가장 먼저 확인하시는 핵심 질의응답입니다.</p>

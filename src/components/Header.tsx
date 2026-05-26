@@ -11,8 +11,8 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
 
   const navItems = [
     { id: 'brand', label: '법무사 소개' },
-    { id: 'stories', label: '당신의 이야기' },
-    { id: 'our-spirit', label: '우리의 이야기' },
+    { id: 'stories', label: '개인회생 신청자격' },
+    { id: 'our-spirit', label: '상황별 클리닉케어' },
     { id: 'faq', label: '자주 묻는 질문' }
   ];
 
@@ -26,8 +26,8 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
               <Scale className="w-5.5 h-5.5" />
             </div>
             <div>
-              <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-violet-700 bg-clip-text text-transparent">
-                법무사 여환동
+              <span className="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-violet-700 bg-clip-text text-transparent block leading-tight">
+                울산 개인회생<br />법무사 여환동
               </span>
             </div>
           </div>
@@ -47,10 +47,6 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
 
           {/* Action Button Area */}
           <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-500">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 animate-pulse" />
-              <span>법무사 여환동</span>
-            </div>
             <button
               onClick={onStartSurvey}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm tracking-wide shadow-md shadow-emerald-200 hover:-translate-y-0.5 transition-transform cursor-pointer"

@@ -154,27 +154,24 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
           </div>
         </div>
 
-        <div className="p-4 sm:p-8 space-y-8">
+        <div className="p-4 sm:p-8 space-y-4">
           {/* Intro text */}
           <div className="text-center max-w-lg mx-auto space-y-2">
             <span className="text-sky-600 font-extrabold text-xs tracking-wider uppercase bg-sky-50 border border-sky-200/50 px-3.5 py-1.5 rounded-full inline-block">
-              1:1 PORTFOLIO PLAN DESIGN
+              나만을 위한 1:1 개인회생 플랜
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
               맞춤형 월 변제 상환 계획기
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm font-semibold leading-relaxed">
-              본인의 월 소득과 법정 최저생계비를 대조하여 매달 갚아 나갈 월 변제금과 최종 면책받는 탕감율을 즉시 산출해 드립니다.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-1">
             
             {/* Left Column: Sliders Controllers */}
             <div className="col-span-1 md:col-span-7 space-y-6">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Wallet className="w-4 h-4 text-sky-500" />
-                <span>시뮬레이션 조절기</span>
+                <span>시뮬레이션 조절기를 움직여 보세요!</span>
               </h3>
 
               {/* Slider 1: Total Debt */}
@@ -209,8 +206,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
               <div className="space-y-2 p-3 bg-gradient-to-r from-indigo-50/40 to-sky-50/40 rounded-xl border border-indigo-100/50">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-1">
-                    <span className="text-xs font-bold text-slate-700">보유 총 순자산 가치 (청산가치)</span>
-                    <span className="text-[10px] text-indigo-500 font-semibold bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-sm">법리 수합</span>
+                    <span className="text-xs font-bold text-slate-700">자산 보유 가액(청산가치)</span>
                   </div>
                   <span className="text-sm font-black text-indigo-700">{formatManWon(netAsset)}</span>
                 </div>
@@ -256,7 +252,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
               <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-extrabold text-slate-700">부양가족 수 (본인 포함)</span>
-                  <span className="text-xs text-sky-600 font-extrabold">2026 법정 기본생계 보호 반영</span>
+                  <span className="text-xs text-sky-600 font-extrabold">2026년 최저생계비 반영</span>
                 </div>
                 
                 <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 animate-fade-in">
@@ -278,9 +274,9 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
                 <div className="p-3 bg-white rounded-lg border border-slate-150 flex items-start gap-2 text-xs text-slate-500 font-medium font-sans">
                   <Info className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
                   <div className="space-y-0.5 animate-fade-in">
-                    <span className="font-extrabold text-slate-700">2026 보건복지부 법정 생계비: {livingCost.toLocaleString()}원 (약 {formatManWon(livingCost)})</span>
+                    <span className="font-extrabold text-slate-700">{dependents}인 최저생계비: {livingCost.toLocaleString()}원 (약 {formatManWon(livingCost)})</span>
                     <p className="text-[10px] text-slate-400 leading-normal">
-                      월 소득에서 본인 및 부양가족의 2026 법정 기본생계비 전액을 1순위로 공제 보장받은 후, 남은 소득(월 가용소득)으로만 변제금을 납부하게 됩니다.
+                      월 소득에서 본인 및 부양가족의 2026년 최저생계비 전액을 1순위로 공제 보장받은 후, 남은 소득(월 가용소득)으로만 변제금을 납부하게 됩니다.
                     </p>
                   </div>
                 </div>
@@ -334,8 +330,8 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
                 ) : reductionPercent > 0 ? (
                   <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 flex flex-col gap-1">
                     <div className="flex justify-between items-center w-full">
-                      <span className="text-xs text-slate-300 font-bold">합법 원금 감면 비율:</span>
-                      <span className="text-sm font-black text-emerald-400">{reductionPercent}% 삭감 승인</span>
+                      <span className="text-xs text-slate-300 font-bold">원금대비 감면 비율:</span>
+                      <span className="text-sm font-black text-emerald-400">{reductionPercent}% 탕감 예상</span>
                     </div>
                     {estimatedPaymentMonthly * 36 >= netAsset && surplusIncome < monthlyRequiredByAsset && (
                       <p className="text-[9px] text-indigo-300 leading-normal font-semibold border-t border-white/5 pt-1 mt-1">
@@ -352,7 +348,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
 
               {/* Action Form inside right-rail column */}
               <form onSubmit={handleSubmit} className="p-4.5 rounded-2xl border border-slate-200 bg-white space-y-3">
-                <span className="text-xs font-black text-slate-800 block">이 플랜으로 정밀 보고서 예약하기</span>
+                <span className="text-xs font-black text-slate-800 block">보고서를 문자로 받아 보세요.</span>
                 
                 <div className="space-y-1">
                   <input
@@ -370,7 +366,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
                   <input
                     type="tel"
                     required
-                    placeholder="결과 통보 휴대폰 번호 (010-0000-0000)"
+                    placeholder="010-0000-0000"
                     value={uPhone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 bg-slate-50/50 rounded-xl font-mono font-semibold text-base md:text-xs focus:outline-hidden focus:border-sky-500 focus:bg-white"
@@ -403,7 +399,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
                   className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-md shadow-sky-100 hover:shadow-lg transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-sky-200" />
-                  <span>{submitting ? '플랜 정보 송신 중...' : '맞춤 상환 플랜 잠금 예약'}</span>
+                  <span>{submitting ? '플랜 정보 송신 중...' : '맞춤 상환 플랜 보고서 확인하기!'}</span>
                 </button>
               </form>
 
@@ -413,7 +409,7 @@ export default function RepaymentPlanBuilder({ onBack, onSubmitPlan }: Repayment
 
           {/* Direct call center support */}
           <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-center text-xs">
-            <span className="text-slate-500 font-bold">도움말이 필요하신가요?</span>
+            <span className="text-slate-500 font-bold">도움이 필요한가요?</span>
             <a href="tel:052-933-5679" className="text-sky-600 font-black flex items-center gap-1">
               <PhoneCall className="w-3.5 h-3.5 text-sky-600 shrink-0" />
               052-933-5679 유선 통화

@@ -10,7 +10,7 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
   // Config for the 3 interactive entry cards
   const entranceCards = [
     {
-      title: '내 예상 채무 탕감액 조회',
+      title: '예상 채무 탕감 비율 조회',
       subtitle: '탕감 한도 & 예상 잔여금 계산',
       icon: <TrendingDown className="w-8 h-8 text-blue-700" />,
       color: 'from-blue-500/15 to-indigo-500/10 hover:border-blue-400',
@@ -24,8 +24,8 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
       actionKey: 'qualification'
     },
     {
-      title: '나와 비슷한 성공사례 매칭',
-      subtitle: '실제 해방인의 면책사례 비교',
+      title: '나와 비슷한 성공사례 찾기',
+      subtitle: '실제 면책사례와 비교',
       icon: <Users className="w-8 h-8 text-amber-600" />,
       color: 'from-amber-500/10 to-orange-500/10 hover:border-amber-300',
       actionKey: 'case'
@@ -33,10 +33,10 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
   ];
 
   const worrychips = [
-    '최근 대출이 많아요',
-    '독촉 스트레스가 심해요',
-    '투자 및 코인 채무',
-    '가족 몰래 은밀하게 진행'
+    '전부 최근 대출이에요.',
+    '전화 독촉 스트레스!',
+    '코인 및 주식 투자손실',
+    '배우자 몰래 진행하기!'
   ];
 
   return (
@@ -54,7 +54,7 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-100/80 border border-blue-200 text-xs font-bold text-blue-900 mb-6"
         >
           <Sparkles className="w-3.5 h-3.5 text-blue-700 animate-spin" />
-          <span>채무 탕감 보장제 자가 진단</span>
+          <span>신청자격 자가진단 시스템</span>
         </motion.div>
 
         {/* Master Titles */}
@@ -65,10 +65,10 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
           className="space-y-2 sm:space-y-3"
         >
           <h2 className="text-indigo-800 font-extrabold text-sm sm:text-base md:text-lg tracking-wider uppercase">
-            울산에 사시는데 다른 지역에 맡기시려고요? ⚖️
+            울산에 사시는데 다른 지역에 맡기시려고요?
           </h2>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-tight whitespace-pre-line">
-            울산관할 개인회생{"\n"}13년 경력 법무사
+            울산 전담 개인회생{"\n"}13년간·1,000건+성공
           </h1>
         </motion.div>
 
@@ -102,9 +102,9 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
             </p>
           </div>
           <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-100 shadow-3xs flex flex-col items-center justify-center text-center">
-            <span className="text-[11px] font-extrabold text-amber-600 mb-1 leading-none">재산 한계 범위</span>
+            <span className="text-[11px] font-extrabold text-amber-600 mb-1 leading-none">순자산 보유 범위</span>
             <p className="text-xs sm:text-sm font-black text-slate-800 leading-snug">
-              소유 재산 가격보다<br className="hidden sm:block" /> 채무가 더 많다면 가능!
+              소유 재산 가액보다<br className="hidden sm:block" /> 채무가 더 많다면 가능!
             </p>
           </div>
         </motion.div>
@@ -114,7 +114,7 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
           {worrychips.map((chip, index) => (
             <span
               key={index}
-              className="px-3 py-1.5 rounded-xl bg-slate-200/50 border border-slate-300/25 text-[11px] font-bold text-slate-600 shadow-3xs"
+              className="px-3.5 py-1.5 rounded-full bg-indigo-50/80 text-indigo-600 border border-indigo-100 text-[11px] font-extrabold shadow-3xs hover:bg-indigo-100/80 hover:scale-[1.03] transition-all duration-200 cursor-default"
             >
               #{chip}
             </span>
@@ -124,13 +124,15 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
         {/* Action Title Block */}
         <div className="mt-12 sm:mt-20 border-t border-slate-200/50 pt-10">
           <span className="text-xs font-extrabold text-violet-600 tracking-wider uppercase block mb-1">
-            진단 질문지 무료 배포
+            1분만 투자해 보세요!
           </span>
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight px-2">
-            나는 얼마나 탕감 받을까?
+            개인회생 신청자격 조회하기
           </h3>
-          <p className="mt-2 text-xs sm:text-base text-slate-550 font-bold max-w-lg mx-auto leading-relaxed px-4">
-            개인회생이 가능한지, 6개월 뒤 나의 채무량 변화와 맞춤 변제 상환 보고서를 발송해 드립니다.
+          <p className="mt-2 text-xs sm:text-base text-slate-500 font-bold max-w-lg mx-auto leading-relaxed px-4">
+            개인회생이 가능한지?<br />
+            월 변제금은 얼마인지?<br />
+            결과를 실시간 확인할 수 있습니다.
           </p>
         </div>
 

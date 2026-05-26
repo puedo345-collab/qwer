@@ -211,12 +211,7 @@ export default function SuccessCaseMatcher({ onBack, onSelectPlan }: SuccessCase
                           "{story.description}"
                         </p>
                         
-                        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-1.5">
-                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-bold">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>법무사 여환동 보정 성공 선례</span>
-                          </div>
-                          
+                        <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-2 pt-1.5">
                           <button
                             onClick={() => handleApplyMatch(story)}
                             className="px-3 py-1.5 bg-slate-900 text-white font-extrabold text-[10px] sm:text-xs rounded-lg hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center gap-0.5 group"
