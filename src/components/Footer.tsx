@@ -36,24 +36,9 @@ export default function Footer({ onAdminClick }: FooterProps) {
         </div>
 
         {/* Legal and Office Metadata */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2">
-          <div className="space-y-2 col-span-2 sm:col-span-1">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">공식 자격심사</span>
-            <span className="text-xs text-slate-400 font-semibold block">
-              대표 법무사 여환동
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">서비스 링크</span>
-            <div className="space-y-1 text-xs font-semibold">
-              <a href="#brand" className="block hover:text-emerald-400 transition-colors">법무사 사무소 소개</a>
-              <a href="#faq" className="block hover:text-emerald-400 transition-colors">자주 묻는 질문</a>
-            </div>
-          </div>
-
-          <div className="space-y-2 col-span-2 sm:col-span-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">검토 및 자격 수임</span>
+        <div className="pt-2">
+          <div className="space-y-2 max-w-2xl">
+            <span className="text-xs font-bold text-white uppercase tracking-wider block">개인 정보 보호</span>
             <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
               입력하신 정보는 자격 진단·상담 목적으로만 사용되며, 개인정보 보호법에 따라 안전하게 보호됩니다.
             </p>

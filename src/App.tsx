@@ -34,6 +34,7 @@ export default function App() {
   const [consultationOpen, setConsultationOpen] = useState(false);
   const [reserveTab, setReserveTab] = useState<'phone' | 'kakao'>('phone');
   const [reservePhone, setReservePhone] = useState('');
+  const [isAsap, setIsAsap] = useState(true);
   const [reserveDate, setReserveDate] = useState(getTodayDateString());
   const [reserveTime, setReserveTime] = useState('14:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +46,7 @@ export default function App() {
   // Reset reservation date & time to today & default when opening the card
   React.useEffect(() => {
     if (consultationOpen) {
+      setIsAsap(true);
       setReserveDate(getTodayDateString());
       setReserveTime('14:00');
       setReserveAgree(false);
@@ -81,21 +83,23 @@ export default function App() {
     }
 
     // Past date/time validation
-    const now = new Date();
-    const [yearStr, monthStr, dayStr] = reserveDate.split('-');
-    const [hourStr, minStr] = reserveTime.split(':');
-    const selectedDateTime = new Date(
-      parseInt(yearStr, 10),
-      parseInt(monthStr, 10) - 1,
-      parseInt(dayStr, 10),
-      parseInt(hourStr, 10),
-      parseInt(minStr, 10),
-      0
-    );
+    if (!isAsap) {
+      const now = new Date();
+      const [yearStr, monthStr, dayStr] = reserveDate.split('-');
+      const [hourStr, minStr] = reserveTime.split(':');
+      const selectedDateTime = new Date(
+        parseInt(yearStr, 10),
+        parseInt(monthStr, 10) - 1,
+        parseInt(dayStr, 10),
+        parseInt(hourStr, 10),
+        parseInt(minStr, 10),
+        0
+      );
 
-    if (selectedDateTime < now) {
-      setReserveError('과거의 날짜와 시간으로는 상담 예약을 지정하실 수 없습니다. 현재 시각 이후의 날짜와 시간으로 예약해 주세요.');
-      return;
+      if (selectedDateTime < now) {
+        setReserveError('과거의 날짜와 시간으로는 상담 예약을 지정하실 수 없습니다. 현재 시각 이후의 날짜와 시간으로 예약해 주세요.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -105,7 +109,7 @@ export default function App() {
       phone: reservePhone,
       isSimpleConsultation: true,
       difficulties: [typeLabel],
-      counselorNotes: `[실시간 간편 예약]\n희망 일시: ${reserveDate} ${reserveTime}\n상담 종류: ${typeLabel}\n요청 번호: ${reservePhone}`,
+      counselorNotes: `[실시간 간편 예약]\n희망 일시: ${isAsap ? '즉시 상담 희망(가장 빠른 시간 연락)' : `${reserveDate} ${reserveTime}`}\n상담 종류: ${typeLabel}\n요청 번호: ${reservePhone}`,
     };
 
     fetch('/api/submissions', {
@@ -231,17 +235,9 @@ export default function App() {
       setCaseMatcherActive(true);
       setPlanSimulatorActive(false);
       setSurveyActive(false);
-    } else if (mode === 'plan') {
-      setPlanSimulatorActive(false);
-      setCaseMatcherActive(false);
-      setSurveyActive(false);
-      setTimeout(() => {
-        calculatorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-      return; // Skip standard scrolling
     } else {
       setSurveyActive(true);
-      setSurveyMode(mode || 'general');
+      setSurveyMode(mode === 'plan' ? 'general' : (mode || 'general'));
       setCaseMatcherActive(false);
       setPlanSimulatorActive(false);
     }
@@ -349,33 +345,6 @@ export default function App() {
                 className="flex flex-col"
               >
                 <MainHero onStartSurvey={handleStartSurvey} />
-
-                {/* Direct display of RepaymentPlanBuilder on the main page */}
-                <div ref={calculatorRef} className="scroll-mt-24 bg-gradient-to-b from-blue-200 via-indigo-100 to-slate-200 pt-20 md:pt-28 lg:pt-36 pb-20 md:pb-28 lg:pb-36 relative">
-                  {/* Subtle Background Accent */}
-                  <div className="absolute top-0 right-1/4 w-72 h-72 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
-                  
-                  <div className="max-w-5xl md:max-w-6xl mx-auto px-4 sm:px-8 relative z-10">
-                    <div className="text-center mb-16">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-200 text-xs md:text-sm font-extrabold text-blue-900 shadow-3xs">
-                        <Sparkles className="w-3.5 h-3.5 text-blue-700 animate-spin" />
-                        <span>실시간 변제금 확인 서비스</span>
-                      </div>
-                      <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-5">
-                        맞춤형 월 변제 상환계획기
-                      </h3>
-                      <p className="mt-4 text-sm sm:text-lg md:text-xl text-slate-500 font-bold max-w-2xl mx-auto leading-relaxed">
-                        본인의 소득과 최저생계비 기준에 맞는 월 가용소득(변제금)을 실시간 설계하며 확인해 보세요.
-                      </p>
-                    </div>
-
-                    <RepaymentPlanBuilder
-                      onSubmitPlan={(answers) => {
-                        handleSurveyComplete(answers);
-                      }}
-                    />
-                  </div>
-                </div>
               </motion.div>
             ) : surveyActive && !userResponses ? (
               // Case 2: Survey Qualification Wizard in progress
@@ -485,7 +454,7 @@ export default function App() {
         id="floating-consultation-buttons"
         onMouseEnter={() => setConsultationOpen(true)}
         onMouseLeave={() => {
-          if (!submitSuccess && !isSubmitting) {
+          if (!submitSuccess && !isSubmitting && !privacyModalOpen) {
             setConsultationOpen(false);
           }
         }}
@@ -585,57 +554,101 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Grid: Date & Time selector */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1.5">
-                      <label className="block text-[11px] font-extrabold text-slate-500">
-                        원하는 예약 날짜
-                      </label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                        <input
-                          type="date"
-                          required
-                          value={reserveDate}
-                          min={getTodayDateString()}
-                          onChange={(e) => setReserveDate(e.target.value)}
-                          className={`w-full pl-9 pr-2 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden font-bold transition-all ${
-                            reserveTab === 'phone' ? 'focus:border-emerald-500' : 'focus:border-[#FEE500]'
-                          }`}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-[11px] font-extrabold text-slate-500">
-                        약속 시간대
-                      </label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                        <select
-                          value={reserveTime}
-                          onChange={(e) => setReserveTime(e.target.value)}
-                          className={`w-full pl-9 pr-2 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden font-bold appearance-none cursor-pointer transition-all ${
-                            reserveTab === 'phone' ? 'focus:border-emerald-500' : 'focus:border-[#FEE500]'
-                          }`}
-                        >
-                          <option value="09:00">오전 09:00</option>
-                          <option value="10:00">오전 10:00</option>
-                          <option value="11:00">오전 11:00</option>
-                          <option value="12:00">정오 12:00</option>
-                          <option value="13:00">오후 01:00</option>
-                          <option value="14:00">오후 02:00</option>
-                          <option value="15:00">오후 03:00</option>
-                          <option value="16:00">오후 04:00</option>
-                          <option value="17:00">오후 05:00</option>
-                          <option value="18:00">오후 06:00</option>
-                          <option value="19:00">오후 07:00</option>
-                          <option value="20:00">오후 08:00</option>
-                        </select>
-                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
-                      </div>
+                  {/* 상담 신청 희망 방식 선택 (즉시 vs 예약) */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-extrabold text-slate-500">
+                      상담 희망 일정
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAsap(true);
+                          setReserveError('');
+                        }}
+                        className={`py-1.5 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                          isAsap
+                            ? 'bg-white text-slate-900 shadow-3xs'
+                            : 'text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        ⚡ 즉시 / 언제든 가능
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAsap(false);
+                          setReserveError('');
+                        }}
+                        className={`py-1.5 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                          !isAsap
+                            ? 'bg-white text-slate-900 shadow-3xs'
+                            : 'text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        📅 예약 일시 지정
+                      </button>
                     </div>
                   </div>
+
+                  {/* Grid: Date & Time selector */}
+                  {isAsap ? (
+                    <div className="p-3 bg-emerald-50/50 border border-emerald-100/60 rounded-xl text-[11px] sm:text-xs font-black text-emerald-800 flex items-center gap-2">
+                      <span className="text-emerald-500 text-xs shrink-0">✔</span>
+                      <span>확인하는 즉시 가장 빠른 시간 내에 친절히 연락 드립니다!</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-extrabold text-slate-500">
+                          원하는 예약 날짜
+                        </label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            required={!isAsap}
+                            value={reserveDate}
+                            min={getTodayDateString()}
+                            onChange={(e) => setReserveDate(e.target.value)}
+                            className={`w-full pl-9 pr-2 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden font-bold transition-all ${
+                              reserveTab === 'phone' ? 'focus:border-emerald-500' : 'focus:border-[#FEE500]'
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-extrabold text-slate-500">
+                          약속 시간대
+                        </label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <select
+                            value={reserveTime}
+                            onChange={(e) => setReserveTime(e.target.value)}
+                            className={`w-full pl-9 pr-2 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden font-bold appearance-none cursor-pointer transition-all ${
+                              reserveTab === 'phone' ? 'focus:border-emerald-500' : 'focus:border-[#FEE500]'
+                            }`}
+                          >
+                            <option value="09:00">오전 09:00</option>
+                            <option value="10:00">오전 10:00</option>
+                            <option value="11:00">오전 11:00</option>
+                            <option value="12:00">정오 12:00</option>
+                            <option value="13:00">오후 01:00</option>
+                            <option value="14:00">오후 02:00</option>
+                            <option value="15:00">오후 03:00</option>
+                            <option value="16:00">오후 04:00</option>
+                            <option value="17:00">오후 05:00</option>
+                            <option value="18:00">오후 06:00</option>
+                            <option value="19:00">오후 07:00</option>
+                            <option value="20:00">오후 08:00</option>
+                          </select>
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Privacy Policy Agreement Checkbox */}
                   <div className="pt-2 pb-1 border-t border-slate-100 flex flex-col gap-1.5">
@@ -721,7 +734,10 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setPrivacyModalOpen(false)}
+              onClick={() => {
+                setPrivacyModalOpen(false);
+                setConsultationOpen(true);
+              }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
             />
 
@@ -736,7 +752,10 @@ export default function App() {
               <div className="bg-slate-950 text-white p-5 flex justify-between items-center border-b border-slate-800">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight">[개인정보 수집 · 이용 동의]</span>
                 <button
-                  onClick={() => setPrivacyModalOpen(false)}
+                  onClick={() => {
+                    setPrivacyModalOpen(false);
+                    setConsultationOpen(true);
+                  }}
                   className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
                 >
                   <X className="w-5 h-5" />
@@ -794,6 +813,7 @@ export default function App() {
                   onClick={() => {
                     setReserveAgree(true);
                     setPrivacyModalOpen(false);
+                    setConsultationOpen(true);
                   }}
                   className="w-36 py-3 bg-[#3F4E65] hover:bg-slate-800 text-white font-black text-xs sm:text-sm rounded-md shadow-md transition-all text-center cursor-pointer tracking-wider"
                 >

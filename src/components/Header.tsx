@@ -12,7 +12,7 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
   const navItems = [
     { id: 'brand', label: '법무사 소개' },
     { id: 'stories', label: '신청자격 (회생·파산)' },
-    { id: 'our-spirit', label: '상황별 클리닉케어' },
+    { id: 'our-spirit', label: '회생절차 & 준비서류' },
     { id: 'faq', label: '자주 묻는 질문' }
   ];
 

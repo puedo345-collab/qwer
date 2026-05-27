@@ -7,20 +7,13 @@ interface MainHeroProps {
 }
 
 export default function MainHero({ onStartSurvey }: MainHeroProps) {
-  // Config for the 3 interactive entry cards
+  // Config for the 2 interactive entry cards (combined from 3 original cards)
   const entranceCards = [
     {
-      title: '예상 채무 탕감 비율 조회',
-      subtitle: '탕감 한도 & 예상 잔여금 계산',
-      icon: <TrendingDown className="w-8 h-8 text-blue-700" />,
-      color: 'from-blue-500/15 to-indigo-500/10 hover:border-blue-400',
-      actionKey: 'debt'
-    },
-    {
-      title: '개인회생 신청 자격 확인',
-      subtitle: '소득 및 재산 자격 심사',
-      icon: <ClipboardCheck className="w-8 h-8 text-violet-600" />,
-      color: 'from-violet-500/10 to-indigo-500/10 hover:border-violet-300',
+      title: '개인회생 신청자격 확인',
+      subtitle: '탕감 비율 & 한도 계산',
+      icon: <ClipboardCheck className="w-8 h-8 text-blue-700" />,
+      color: 'from-blue-500/15 to-violet-500/10 hover:border-blue-400',
       actionKey: 'qualification'
     },
     {
@@ -68,7 +61,7 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
             울산에 사시는데 다른 지역에 맡기시려고요?
           </h2>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 leading-[1.12] whitespace-pre-line">
-            울산 개인회생·파산 전문
+            개인회생·파산 법무사
           </h1>
         </motion.div>
 
@@ -123,21 +116,22 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
 
         {/* Action Title Block */}
         <div className="mt-16 md:mt-24 lg:mt-32 border-t border-slate-300/40 pt-16 md:pt-24 lg:pt-32">
-          <span className="text-xs sm:text-sm font-extrabold text-violet-600 tracking-wider uppercase block mb-2">
-            1분만 투자해 보세요!
-          </span>
-          <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight px-2">
-            개인회생 신청자격 조회하기
-          </h3>
-          <p className="mt-4 text-sm sm:text-lg text-slate-500 font-bold max-w-2xl mx-auto leading-relaxed px-4">
-            개인회생이 가능한지?<br />
-            월 변제금은 얼마인지?<br />
+          <div className="space-y-4 sm:space-y-6">
+            <span className="text-sm sm:text-base md:text-xl font-extrabold text-violet-600 tracking-wider uppercase block">
+              1분만 투자해 보세요!
+            </span>
+            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight px-2 leading-[1.12]">
+              개인회생 신청자격 조회
+            </h3>
+          </div>
+          <p className="mt-6 sm:mt-10 text-sm sm:text-lg text-slate-500 font-bold max-w-2xl mx-auto leading-relaxed px-4">
+            개인회생이 가능한지? 월변제금은 얼마인지?<br />
             결과를 실시간 확인할 수 있습니다.
           </p>
         </div>
 
         {/* Entrance Interactive Selection Grid */}
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto px-1 text-left">
+        <div className="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto px-1 text-left">
           {entranceCards.map((card, idx) => (
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -149,12 +143,12 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
               <div className="p-4 bg-white rounded-2xl shadow-3xs shrink-0 group-hover:scale-110 transition-transform">
                 {card.icon}
               </div>
-              <div className="space-y-0.5 flex-1 min-w-0">
-                <h4 className="font-extrabold text-slate-800 text-sm sm:text-base flex items-center justify-between w-full">
-                  <span className="truncate">{card.title}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-1 shrink-0 transition-all ml-1.5" />
+              <div className="space-y-1 flex-1">
+                <h4 className="font-extrabold text-slate-800 text-sm sm:text-base flex items-center justify-between w-full gap-1.5">
+                  <span>{card.title}</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-1 shrink-0 transition-all" />
                 </h4>
-                <p className="text-[11px] text-slate-500 font-bold truncate">{card.subtitle}</p>
+                <p className="text-[11.5px] text-slate-500 font-bold leading-normal">{card.subtitle}</p>
               </div>
             </motion.div>
           ))}
