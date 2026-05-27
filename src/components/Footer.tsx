@@ -9,12 +9,12 @@ export default function Footer({ onAdminClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
+    <footer id="main-footer" className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-7">
         
         {/* Main Hotline and Core Anchors */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pb-8 border-b border-slate-800">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pb-6 border-b border-slate-800">
+          <div className="space-y-1.5">
             <h4 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               필요한 만큼, 꼭 필요한 방식으로
             </h4>
@@ -36,7 +36,7 @@ export default function Footer({ onAdminClick }: FooterProps) {
         </div>
 
         {/* Legal and Office Metadata */}
-        <div className="pt-2">
+        <div className="pt-1">
           <div className="space-y-2 max-w-2xl">
             <span className="text-xs font-bold text-white uppercase tracking-wider block">개인 정보 보호</span>
             <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
@@ -47,9 +47,12 @@ export default function Footer({ onAdminClick }: FooterProps) {
 
         {/* Corporate bottom row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-6 border-t border-slate-800 text-[10px] sm:text-xs">
-          <div className="space-y-1 font-semibold text-slate-500">
-            <p>상호: 법무사 여환동 사무소 | 대표 법무사 여환동</p>
-            <p>사업자등록번호: 610-06-65592 | 주소: 울산 남구 법대로14번길 18 1층</p>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-white tracking-wider">상호: 법무사 여환동 사무소 | 대표 법무사 여환동</p>
+            <div className="flex flex-col md:flex-row md:items-center md:gap-x-4 space-y-1 md:space-y-0">
+              <p className="text-xs font-bold text-white tracking-wider">사업자등록번호: 610-06-65592</p>
+              <p className="text-xs font-bold text-white tracking-wider">주소: 울산 남구 법대로14번길 18 1층</p>
+            </div>
             <p className="text-slate-600">
               유의사항: 본 시뮬레이션 결과는 간이 진단 기준이며, 실제 변제액은 소득과 재산 실사 후 달라질 수 있습니다.
             </p>

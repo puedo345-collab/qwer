@@ -4,14 +4,21 @@ import { ArrowRight, Sparkles, TrendingDown, ClipboardCheck, Users, HelpCircle }
 
 interface MainHeroProps {
   onStartSurvey: (initialMode?: string) => void;
+  onWorryChipClick?: (index: number) => void;
 }
 
-export default function MainHero({ onStartSurvey }: MainHeroProps) {
+export default function MainHero({ onStartSurvey, onWorryChipClick }: MainHeroProps) {
   // Config for the 2 interactive entry cards (combined from 3 original cards)
   const entranceCards = [
     {
       title: '개인회생 신청자격 확인',
-      subtitle: '탕감 비율 & 한도 계산',
+      subtitle: (
+        <span className="flex items-center flex-wrap gap-1.5">
+          탕감 비율 <span className="text-blue-600 bg-blue-50 border border-blue-100/60 px-2 py-0.5 rounded-md font-black text-xs inline-flex items-center shadow-3xs">
+            1분 진단 하기
+          </span>
+        </span>
+      ),
       icon: <ClipboardCheck className="w-8 h-8 text-blue-700" />,
       color: 'from-blue-500/15 to-violet-500/10 hover:border-blue-400',
       actionKey: 'qualification'
@@ -33,11 +40,16 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-200 via-indigo-100 to-blue-200 pt-24 md:pt-32 lg:pt-40 pb-20 md:pb-28 lg:pb-36">
-      {/* Sophisticated Background Design: Subtle Grid Pattern & Light Beam */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a06_1px,transparent_1px),linear-gradient(to_bottom,#0f172a06_1px,transparent_1px)] bg-[size:16px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent pointer-events-none" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-slate-100 via-slate-50 to-indigo-50/15 pt-24 md:pt-32 lg:pt-40 pb-20 md:pb-28 lg:pb-36">
+      {/* Sophisticated Background Design: Subtle Grid Pattern, Ambient Glows & Light Beam */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a04_1px,transparent_1px),linear-gradient(to_bottom,#0f172a04_1px,transparent_1px)] bg-[size:16px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[1px] bg-gradient-to-r from-transparent via-indigo-500/10 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-transparent to-transparent pointer-events-none" />
+
+      {/* Modern Ambient Glow Backdrops (Subtle pastel blue & light purple spotlights under card sections for depth) */}
+      <div className="absolute top-[15%] left-[20%] w-[320px] sm:w-[480px] h-[320px] sm:h-[480px] rounded-full bg-blue-400/[0.07] blur-[100px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '14s' }} />
+      <div className="absolute top-[45%] right-[15%] w-[280px] sm:w-[420px] h-[280px] sm:h-[420px] rounded-full bg-indigo-300/[0.05] blur-[110px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '16s' }} />
+      <div className="absolute bottom-[5%] left-[30%] w-[300px] sm:w-[450px] h-[300px] sm:h-[450px] rounded-full bg-slate-300/[0.05] blur-[120px] pointer-events-none -z-10" />
 
       <div className="max-w-5xl md:max-w-6xl mx-auto px-4 sm:px-8 relative z-10 text-center">
         {/* Badges */}
@@ -83,20 +95,20 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
           className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto px-1"
         >
           <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-100 shadow-3xs flex flex-col items-center justify-center text-center md:min-h-[160px]">
-            <span className="text-xs font-extrabold text-blue-800 mb-2 leading-none">소득 기준 최소화</span>
-            <p className="text-sm sm:text-base font-black text-slate-800 leading-snug">
+            <span className="text-sm font-extrabold text-blue-800 mb-2 leading-none">소득 기준 최소화</span>
+            <p className="text-[18px] sm:text-[20px] font-black text-slate-800 leading-snug">
               어떤 직종이든<br className="block" /> 소득이 있다면 가능!
             </p>
           </div>
           <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-100 shadow-3xs flex flex-col items-center justify-center text-center md:min-h-[160px]">
-            <span className="text-xs font-extrabold text-violet-600 mb-2 leading-none">최소 채무 허들</span>
-            <p className="text-sm sm:text-base font-black text-slate-800 leading-snug">
+            <span className="text-sm font-extrabold text-violet-600 mb-2 leading-none">최소 채무 허들</span>
+            <p className="text-[18px] sm:text-[20px] font-black text-slate-800 leading-snug">
               총 빚 합산금액이<br className="block" /> 천만 원 이상이면 가능!
             </p>
           </div>
           <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-100 shadow-3xs flex flex-col items-center justify-center text-center md:min-h-[160px]">
-            <span className="text-xs font-extrabold text-amber-600 mb-2 leading-none">순자산 보유 범위</span>
-            <p className="text-sm sm:text-base font-black text-slate-800 leading-snug">
+            <span className="text-sm font-extrabold text-amber-600 mb-2 leading-none">순자산 보유 범위</span>
+            <p className="text-[18px] sm:text-[20px] font-black text-slate-800 leading-snug">
               소유 재산 가액보다<br className="block" /> 채무가 더 많다면 가능!
             </p>
           </div>
@@ -107,7 +119,8 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
           {worrychips.map((chip, index) => (
             <span
               key={index}
-              className="px-4.5 py-2.5 rounded-full bg-indigo-50/80 text-indigo-600 border border-indigo-100 text-xs font-extrabold shadow-3xs hover:bg-indigo-100/80 hover:scale-[1.03] transition-all duration-200 cursor-default"
+              onClick={() => onWorryChipClick && onWorryChipClick(index)}
+              className="px-4.5 py-2.5 rounded-full bg-indigo-50/80 text-indigo-600 border border-indigo-100 text-[12.6px] font-extrabold shadow-3xs hover:bg-indigo-100/80 hover:scale-[1.03] active:scale-95 transition-all duration-200 cursor-pointer"
             >
               #{chip}
             </span>
@@ -144,18 +157,18 @@ export default function MainHero({ onStartSurvey }: MainHeroProps) {
                 {card.icon}
               </div>
               <div className="space-y-1 flex-1">
-                <h4 className="font-extrabold text-slate-800 text-sm sm:text-base flex items-center justify-between w-full gap-1.5">
+                <h4 className="font-extrabold text-slate-800 text-[17.15px] sm:text-[19px] flex items-center justify-between w-full gap-1.5">
                   <span>{card.title}</span>
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-1 shrink-0 transition-all" />
                 </h4>
-                <p className="text-[11.5px] text-slate-500 font-bold leading-normal">{card.subtitle}</p>
+                <p className="text-sm text-slate-500 font-bold leading-normal">{card.subtitle}</p>
               </div>
             </motion.div>
           ))}
         </div>
 
         {/* Subtle timer warning */}
-        <p className="mt-6 text-xs text-slate-400 font-medium tracking-wide">
+        <p className="mt-6 text-[13px] text-slate-400 font-medium tracking-wide">
           ⏱️ 약 1분 소요, 총 5개 간편 문항으로 정밀 설계
         </p>
       </div>

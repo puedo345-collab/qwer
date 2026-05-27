@@ -7,8 +7,21 @@ export default function EligibilityNotes() {
   const [activeTab, setActiveTab] = useState<'rehabilitation' | 'bankruptcy'>('rehabilitation');
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
+  React.useEffect(() => {
+    const handleExpandFaq = (e: Event) => {
+      const customEvent = e as CustomEvent<{ faqId: number }>;
+      if (customEvent.detail && typeof customEvent.detail.faqId === 'number') {
+        setActiveFaq(customEvent.detail.faqId);
+      }
+    };
+    window.addEventListener('expand-faq', handleExpandFaq);
+    return () => {
+      window.removeEventListener('expand-faq', handleExpandFaq);
+    };
+  }, []);
+
   return (
-    <section className="pt-20 md:pt-28 lg:pt-36 pb-20 md:pb-28 lg:pb-36 bg-gradient-to-b from-slate-200 via-sky-100 to-white border-b border-slate-100">
+    <section className="pt-16 md:pt-24 lg:pt-30 pb-16 md:pb-24 lg:pb-30 bg-gradient-to-b from-slate-100/40 via-slate-50 to-white border-b border-slate-100">
       <div className="max-w-5xl md:max-w-6xl mx-auto px-4 sm:px-8">
         
         {/* Dynamic Tab Switch Selector */}
@@ -16,7 +29,7 @@ export default function EligibilityNotes() {
           <div className="inline-flex bg-slate-250/90 p-1 rounded-xl gap-1 w-full max-w-[414px] shadow-sm border border-slate-300/40">
             <button
                onClick={() => setActiveTab('rehabilitation')}
-              className={`flex-1 px-2.5 sm:px-4.5 py-2 sm:py-2.5 rounded-lg text-[11px] sm:text-xs font-extrabold tracking-tight transition-all duration-300 cursor-pointer ${
+              className={`flex-1 px-2.5 sm:px-4.5 py-2 sm:py-2.5 rounded-lg text-[12.1px] sm:text-[13.2px] font-extrabold tracking-tight transition-all duration-300 cursor-pointer ${
                 activeTab === 'rehabilitation'
                   ? 'bg-white text-emerald-900 shadow-md scale-[1.01] border border-slate-100/50 font-black'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/30'
@@ -25,10 +38,10 @@ export default function EligibilityNotes() {
               개인회생 신청자격 안내
             </button>
             <button
-              onClick={() => setActiveTab('bankruptcy')}
-              className={`flex-1 px-2.5 sm:px-4.5 py-2 sm:py-2.5 rounded-lg text-[11px] sm:text-xs font-extrabold tracking-tight transition-all duration-300 cursor-pointer ${
+               onClick={() => setActiveTab('bankruptcy')}
+              className={`flex-1 px-2.5 sm:px-4.5 py-2 sm:py-2.5 rounded-lg text-[12.1px] sm:text-[13.2px] font-extrabold tracking-tight transition-all duration-300 cursor-pointer ${
                 activeTab === 'bankruptcy'
-                  ? 'bg-white text-emerald-900 shadow-md scale-[1.01] border border-slate-100/50 font-black'
+                  ? 'bg-white text-emerald-950 shadow-md scale-[1.01] border border-slate-100/50 font-black'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/30'
               }`}
             >
@@ -50,10 +63,10 @@ export default function EligibilityNotes() {
               <div className="text-center mb-8 md:mb-10 lg:mb-12">
                 <div className="space-y-4 sm:space-y-6">
                   <span className="text-indigo-805 font-extrabold text-sm sm:text-base md:text-xl tracking-wider uppercase block">
-                    회생 가이드
+                    개인회생 가이드
                   </span>
                   <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight px-1 text-center font-sans leading-[1.12]">
-                    개인회생 신청 자격 안내
+                    신청 자격 3가지 안내
                   </h2>
                 </div>
                 <p className="mt-6 sm:mt-10 text-sm sm:text-base md:text-lg text-slate-500 font-medium max-w-3xl mx-auto leading-relaxed px-2">
@@ -105,10 +118,10 @@ export default function EligibilityNotes() {
                 <div className="text-center">
                   <div className="space-y-4 sm:space-y-6">
                     <span className="text-emerald-700 font-extrabold text-sm sm:text-base md:text-xl tracking-wider uppercase block">
-                      신속 회생 프로세스
+                      개인회생 프로세스
                     </span>
                     <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight px-1 text-center font-sans leading-[1.12]">
-                      원스톱 신속 절차 안내
+                      신속 회생 절차 안내
                     </h2>
                   </div>
                   <p className="mt-6 sm:mt-10 text-xs sm:text-sm md:text-base text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
@@ -220,7 +233,7 @@ export default function EligibilityNotes() {
 
                               {/* Stage Descriptive Content Bubble */}
                               <div className="flex-1 space-y-3">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+                                <div className="flex flex-row items-center gap-1.5 sm:gap-4">
                                   <h4 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight leading-tight">
                                     {item.title}
                                   </h4>
@@ -261,10 +274,10 @@ export default function EligibilityNotes() {
               <div className="text-center mb-12">
                 <div className="space-y-4 sm:space-y-6">
                   <span className="text-emerald-700 font-extrabold text-sm tracking-widest uppercase block">
-                    파산 가이드
+                    개인파산 가이드
                   </span>
                   <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight px-1 text-center font-sans leading-[1.12]">
-                    개인파산 신청 자격 요건
+                    신청 자격 3가지 요건
                   </h2>
                 </div>
                 <p className="mt-6 sm:mt-10 text-sm sm:text-base md:text-lg text-slate-500 font-medium max-w-3xl mx-auto leading-relaxed px-2">
@@ -418,7 +431,8 @@ export default function EligibilityNotes() {
               return (
                 <div
                   key={faq.id}
-                  className="rounded-3xl border border-slate-200 bg-white overflow-hidden transition-all duration-200"
+                  id={`faq-item-${faq.id}`}
+                  className="rounded-3xl border border-slate-200 bg-white overflow-hidden transition-all duration-200 scroll-mt-24 md:scroll-mt-28"
                 >
                   <button
                     onClick={() => setActiveFaq(isSelected ? null : faq.id)}

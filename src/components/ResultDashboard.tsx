@@ -190,10 +190,17 @@ export default function ResultDashboard({ responses, onRestart, onGoToMain }: Re
     let textColor = 'text-emerald-700';
     let ringColor = 'ring-emerald-100';
 
-    if (responses.hasMoreDebtThanAssets === 'no') {
+    if (responses.occupation === 'no_income') {
+      reductionRate = 0;
+      warningMsg = '※ 신청 보류 조치: 현재 일정한 소득(월급, 사업소득, 영업소득, 연금, 프리랜서 등)이 없는 상태(무직, 주부, 학생 등)로 진단되어 현행법상 지속적인 소득을 기본 전제로 하는 개인회생 신청은 현재 규정으로는 불가능합니다. 다만, 단기 아르바이트나 파트타임 등 소득 활동의 개시 채널을 즉시 안내받아 보완하시거나, 소득이 전무한 상태에서 빚을 일시에 전액 탕감(100% 면책)받는 "개인파산 및 면책 신청" 제도로의 전환 등 맞춤형 특별 조치가 가능합니다. 상세 자격 충족 요건 조율을 위해 반드시 법무사의 1:1 개별 상담을 즉시 받아보시길 권장해 드립니다.';
+      eligibilityGrade = '신청 보류 (소득 보완 필요)';
+      progressColor = 'bg-rose-600';
+      textColor = 'text-rose-800';
+      ringColor = 'ring-rose-150';
+    } else if (responses.hasMoreDebtThanAssets === 'no') {
       reductionRate = 0; // Asset greater than debt is legally blocked
-      warningMsg = '※ 주의: 보유 자산 가치 총합이 채무액보다 큰 경우, 개인회생 자격이 제한되거나 청산가치 보장 원칙에 따라 매월 상환액이 조정되어 탕감폭이 없거나 기각될 위험이 높습니다. 다만 재산 산정에서 무이자 담보 채무 및 임차보증금 면제 한도가 적용되므로 전문 법무사와 청산가치 감액에 관한 상담을 권장합니다.';
-      eligibilityGrade = '기각 우려 (상담 필히 요망)';
+      warningMsg = '※ 신청 불가 우려: 보유하신 가치 재산의 합산액이 총 채무액보다 많을 경우, 채무초과 및 지급 불능 상태로 인정받지 못해 법원 심사관으로부터 기각 결정을 받게 됩니다. 다만, 일반 개인이 산정할 때 범하기 쉬운 계산 착오(담보 채무 부채의 근저당권 채무 차감 누락, 세금/체납금 반전 계산, 임차보증금 소액보증금 범위 면제 등)를 정밀 분석하여 보정하면 재산 평가 가액이 극적으로 차감되어 회생 진행이 즉시 가능해지는 사례가 매우 빈번합니다. 실제 실익 소실 위험을 피할 수 있도록 법무사와 개별 상담을 통해 재산 정밀 재평가를 꼭 받아보시길 강력 추천합니다.';
+      eligibilityGrade = '기각 확률 높음 (재산 분석 요망)';
       progressColor = 'bg-amber-500';
       textColor = 'text-amber-700';
       ringColor = 'ring-amber-100';
@@ -308,7 +315,11 @@ export default function ResultDashboard({ responses, onRestart, onGoToMain }: Re
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 space-y-5.5" id="result-dashboard-stage">
+    <div className="relative max-w-3xl mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 space-y-5.5" id="result-dashboard-stage">
+      {/* Elegantly soft premium ambient glow effects behind result cards */}
+      <div className="absolute top-[10%] left-[-10%] w-[380px] h-[380px] rounded-full bg-blue-400/[0.08] blur-[100px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '9s' }} />
+      <div className="absolute top-[45%] right-[-10%] w-[420px] h-[420px] rounded-full bg-violet-400/[0.06] blur-[120px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '14s' }} />
+      <div className="absolute bottom-[15%] left-[10%] w-[350px] h-[350px] rounded-full bg-emerald-300/[0.05] blur-[90px] pointer-events-none -z-10" />
       
       {/* Celebration Header Card */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white relative overflow-hidden shadow-xl border border-slate-800 animate-fade-in">
@@ -323,9 +334,6 @@ export default function ResultDashboard({ responses, onRestart, onGoToMain }: Re
             <h2 className="text-xl sm:text-3xl font-black tracking-tight leading-snug">
               {responses.name} 님의 자격요건 검토서
             </h2>
-            <p className="text-xs sm:text-sm text-slate-350 font-bold leading-relaxed">
-              현재 상황에 가장 최적화된 회생 특별 요율 시뮬레이션을 도출했습니다.
-            </p>
           </div>
 
           <div className="shrink-0 flex items-center gap-3 bg-white/10 backdrop-blur-md p-3.5 sm:p-4 rounded-xl border border-white/10 w-full md:w-auto shadow-inner">
@@ -430,7 +438,7 @@ export default function ResultDashboard({ responses, onRestart, onGoToMain }: Re
           <div className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-gradient-to-b from-white to-slate-50/50 space-y-2">
             <span className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest block">36개월 월 예상 변제금</span>
             <p className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-              {est.reductionRate > 0 ? `월 약 ${est.monthlyPaymentStr}` : '전문 상담 요망'}
+              {est.reductionRate > 0 ? `월 약 ${est.monthlyPaymentStr}` : '별도 상담 요망'}
             </p>
             <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
               ※ 개인회생을 통해 본인이 매월 부담해야 하는 변제 금액 (2026년 최저생계비 기준 적용 시뮬레이션)
@@ -449,55 +457,78 @@ export default function ResultDashboard({ responses, onRestart, onGoToMain }: Re
 
         {/* Warn msg block */}
         {est.warningMsg && (
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-100/80 flex gap-2.5 text-[11px] sm:text-xs text-amber-900 font-semibold leading-relaxed">
-            <AlertTriangle className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
-            <div>{est.warningMsg}</div>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className={`p-5 sm:p-6 rounded-2xl border ${
+              responses.occupation === 'no_income' 
+                ? 'bg-rose-50/95 border-rose-200/80 shadow-[0_4px_20px_rgba(225,29,72,0.06)]' 
+                : 'bg-amber-50/95 border-amber-200/80 shadow-[0_4px_20px_rgba(245,158,11,0.06)]'
+            } flex flex-row items-start gap-4 transition-all hover:scale-[1.005]`}
+          >
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2">
+                <span className={`text-[12px] sm:text-[13.2px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md ${
+                  responses.occupation === 'no_income' ? 'bg-rose-200/60 text-rose-800' : 'bg-amber-200/60 text-amber-800'
+                }`}>
+                  개인회생 요건 보완 필요성
+                </span>
+              </div>
+              <div className={`text-xs sm:text-[13px] font-bold leading-relaxed ${
+                responses.occupation === 'no_income' ? 'text-rose-900/90' : 'text-amber-900/90'
+              }`}>
+                {est.warningMsg}
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
 
       {/* Matched Real Success Story Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100 space-y-4">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-violet-600" />
-          <h3 className="text-lg font-black text-slate-800 tracking-tight">
-            의뢰인과 유사한 실제 법원 면책 선례
-          </h3>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
-          <div className="flex justify-between items-start flex-wrap gap-2 pb-3 border-b border-slate-200">
-            <div>
-              <span className="px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 text-[10px] font-extrabold mr-2">
-                {matchedStory.category}
-              </span>
-              <h4 className="font-black text-slate-800 text-base inline-block mt-1 sm:mt-0">
-                {matchedStory.title}
-              </h4>
-            </div>
-            <span className="text-xs text-slate-500 font-bold">{matchedStory.age} | {matchedStory.job}</span>
+      {responses.occupation !== 'no_income' && responses.hasMoreDebtThanAssets !== 'no' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100 space-y-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-violet-600" />
+            <h3 className="text-lg font-black text-slate-800 tracking-tight">
+              의뢰인과 유사한 실제 법원 면책 선례
+            </h3>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-center">
-            <div className="p-3 bg-white rounded-xl border border-slate-100/50">
-              <span className="text-[10px] text-slate-400 font-bold block">기존 총 부채</span>
-              <span className="text-sm font-black text-slate-700">{matchedStory.originalDebt}</span>
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
+            <div className="flex justify-between items-start flex-wrap gap-2 pb-3 border-b border-slate-200">
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 text-[10px] font-extrabold mr-2">
+                  {matchedStory.category}
+                </span>
+                <h4 className="font-black text-slate-800 text-base inline-block mt-1 sm:mt-0">
+                  {matchedStory.title}
+                </h4>
+              </div>
+              <span className="text-xs text-slate-500 font-bold">{matchedStory.age} | {matchedStory.job}</span>
             </div>
-            <div className="p-3 bg-white rounded-xl border border-slate-100/50">
-              <span className="text-[10px] text-slate-400 font-bold block shrink-0">조정 후 부채</span>
-              <span className="text-sm font-black text-violet-700">{matchedStory.reducedDebt}</span>
-            </div>
-            <div className="col-span-2 md:col-span-1 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-              <span className="text-[10px] text-emerald-600 font-extrabold block">실제 탕감율</span>
-              <span className="text-sm font-black text-emerald-700">{matchedStory.reductionRate}% 할인 면책</span>
-            </div>
-          </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed pt-2">
-            "{matchedStory.description}"
-          </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-center">
+              <div className="p-3 bg-white rounded-xl border border-slate-100/50">
+                <span className="text-[10px] text-slate-400 font-bold block">기존 총 부채</span>
+                <span className="text-sm font-black text-slate-700">{matchedStory.originalDebt}</span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-slate-100/50">
+                <span className="text-[10px] text-slate-400 font-bold block shrink-0">조정 후 부채</span>
+                <span className="text-sm font-black text-violet-700">{matchedStory.reducedDebt}</span>
+              </div>
+              <div className="col-span-2 md:col-span-1 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                <span className="text-[10px] text-emerald-600 font-extrabold block">실제 탕감율</span>
+                <span className="text-sm font-black text-emerald-700">{matchedStory.reductionRate}% 할인 면책</span>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed pt-2">
+              "{matchedStory.description}"
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Action Buttons Block */}
       <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center pt-4">

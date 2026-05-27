@@ -33,8 +33,23 @@ export default function QualificationCheck({ onComplete, onCancel, mode = 'gener
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
   const handleSingleSelect = (key: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
+    const updated = { ...answers, [key]: value };
+    setAnswers(updated);
     
+    if (key === 'occupation' && value === 'no_income') {
+      setTimeout(() => {
+        onComplete(updated as SurveyResponses);
+      }, 250);
+      return;
+    }
+
+    if (key === 'hasMoreDebtThanAssets' && value === 'no') {
+      setTimeout(() => {
+        onComplete(updated as SurveyResponses);
+      }, 250);
+      return;
+    }
+
     // Auto-advance for single-choice steps (Step 0 to 5)
     if (currentStep < QUESTIONS.length - 1) {
       setTimeout(() => {
@@ -249,7 +264,7 @@ export default function QualificationCheck({ onComplete, onCancel, mode = 'gener
               </button>
 
               {currentStep < QUESTIONS.length - 1 ? (
-                <div className="flex-1 text-center py-4 text-xs text-slate-400 font-extrabold flex items-center justify-center select-none bg-slate-50 border border-dashed border-slate-200 rounded-xl leading-snug px-2">
+                <div className="flex-1 text-center py-4 text-[13px] sm:text-sm text-slate-400 font-extrabold flex items-center justify-center select-none bg-slate-50 border border-dashed border-slate-200 rounded-xl leading-snug px-2">
                   옵션을 터치하면 다음 문항으로 자동 이동됩니다.
                 </div>
               ) : (

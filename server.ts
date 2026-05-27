@@ -141,6 +141,83 @@ async function startServer() {
     });
   });
 
+  // API: Get lawyer profile image
+  app.get("/api/profile-image", (req, res) => {
+    try {
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        const configData = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+        if (configData && configData.profileImage) {
+          res.json({ image: configData.profileImage });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("[getProfileImage] Error reading profile image:", err);
+    }
+    // Return empty or default
+    res.json({ image: null });
+  });
+
+  // API: Update lawyer profile image
+  app.post("/api/profile-image", (req, res) => {
+    const { image } = req.body;
+    if (!image || typeof image !== "string") {
+      res.status(400).json({ error: "유효하지 않은 이미지 데이터입니다." });
+      return;
+    }
+
+    try {
+      let configObj: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configObj = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      configObj.profileImage = image;
+      fs.writeFileSync(ADMIN_CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf-8");
+      res.json({ success: true, message: "프로필 이미지가 서버에 안전하게 등록되었습니다." });
+    } catch (err) {
+      console.error("[updateProfileImage] Error storing profile image:", err);
+      res.status(500).json({ error: "프로필 이미지 저장 도중 오류가 발생했습니다." });
+    }
+  });
+
+  // API: Get custom logo image
+  app.get("/api/logo-image", (req, res) => {
+    try {
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        const configData = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+        if (configData && configData.logoImage) {
+          res.json({ image: configData.logoImage });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("[getLogoImage] Error reading logo image:", err);
+    }
+    res.json({ image: null });
+  });
+
+  // API: Update custom logo image
+  app.post("/api/logo-image", (req, res) => {
+    const { image } = req.body;
+    if (!image || typeof image !== "string") {
+      res.status(400).json({ error: "유효하지 않은 로고 이미지 데이터입니다." });
+      return;
+    }
+
+    try {
+      let configObj: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configObj = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      configObj.logoImage = image;
+      fs.writeFileSync(ADMIN_CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf-8");
+      res.json({ success: true, message: "로고 이미지가 서버에 안전하게 등록되었습니다." });
+    } catch (err) {
+      console.error("[updateLogoImage] Error storing logo image:", err);
+      res.status(500).json({ error: "로고 이미지 저장 도중 오류가 발생했습니다." });
+    }
+  });
+
   // API: Auth / Verification
   app.post("/api/admin/verify", (req, res) => {
     const { password } = req.body;

@@ -21,6 +21,7 @@ export default function App() {
   const [userResponses, setUserResponses] = useState<SurveyResponses | null>(null);
   const [brandPageActive, setBrandPageActive] = useState(false);
   const [adminPageActive, setAdminPageActive] = useState(false);
+  const [isOverFooter, setIsOverFooter] = useState(false);
 
   const getTodayDateString = () => {
     const today = new Date();
@@ -78,7 +79,7 @@ export default function App() {
     }
 
     if (!reserveAgree) {
-      setReserveError('개인정보 수집 및 이용에 동의하셔야 실시간 전화/카톡 상담 신청이 가능합니다.');
+      setReserveError('개인정보 수집및 이용에 동의해야 실시간 상담이 가능합니다.');
       return;
     }
 
@@ -142,6 +143,24 @@ export default function App() {
   const eligibilityRef = useRef<HTMLDivElement>(null);
   const faqRef = useRef<HTMLDivElement>(null);
   const calculatorRef = useRef<HTMLDivElement>(null);
+  const consultationRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        consultationOpen &&
+        consultationRef.current &&
+        !consultationRef.current.contains(e.target as Node) &&
+        !privacyModalOpen
+      ) {
+        setConsultationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [consultationOpen, privacyModalOpen]);
 
   // Secure backdoor: Drag selection of registration number '610-06-65592' + Ctrl + Alt + L
   React.useEffect(() => {
@@ -158,6 +177,27 @@ export default function App() {
     window.addEventListener('keydown', handleBackdoorShortcut);
     return () => {
       window.removeEventListener('keydown', handleBackdoorShortcut);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const footerElement = document.getElementById('main-footer');
+    if (!footerElement) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsOverFooter(entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px 0px 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(footerElement);
+    return () => {
+      observer.unobserve(footerElement);
     };
   }, []);
 
@@ -224,6 +264,39 @@ export default function App() {
       setPlanSimulatorActive(false);
       setUserResponses(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleWorryChipClick = (index: number) => {
+    const faqIdMap: Record<number, number> = {
+      0: 2, // 전부 최근 대출이에요. -> 최근 1년 이내 대출
+      1: 5, // 전화 독촉 스트레스! -> 채무 독촉 언제 중단
+      2: 4, // 코인 및 주식 투자손실 -> 최근 대출 주식 코인
+      3: 3  // 배우자 몰래 진행하기! -> 직장 가족 몰래
+    };
+    const targetFaqId = faqIdMap[index];
+    if (targetFaqId) {
+      setBrandPageActive(false);
+      setSurveyActive(false);
+      setCaseMatcherActive(false);
+      setPlanSimulatorActive(false);
+      setUserResponses(null);
+      setAdminPageActive(false);
+
+      const event = new CustomEvent('expand-faq', { detail: { faqId: targetFaqId } });
+      window.dispatchEvent(event);
+
+      setTimeout(() => {
+        const faqItem = document.getElementById(`faq-item-${targetFaqId}`);
+        if (faqItem) {
+          faqItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          const faqParent = document.getElementById('faq');
+          if (faqParent) {
+            faqParent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 120);
     }
   };
 
@@ -344,7 +417,10 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col"
               >
-                <MainHero onStartSurvey={handleStartSurvey} />
+                <MainHero 
+                  onStartSurvey={handleStartSurvey} 
+                  onWorryChipClick={handleWorryChipClick} 
+                />
               </motion.div>
             ) : surveyActive && !userResponses ? (
               // Case 2: Survey Qualification Wizard in progress
@@ -359,12 +435,12 @@ export default function App() {
                   <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                     {surveyMode === 'debt' 
                       ? '실시간 채무 탕감 시뮬레이션 계산기' 
-                      : '법무사 여환동 개인회생 자격 정밀 진단'}
+                      : '개인회생 신청자격 정밀 진단'}
                   </h2>
                   <p className="text-xs text-slate-500 font-bold mt-1.5 max-w-sm mx-auto">
                     {surveyMode === 'debt'
                       ? '2026년 최신 소득 및 생계비 기준을 적용해 원금 탕감비율을 즉시 계산합니다.'
-                      : '법률 실무 준칙 및 기각 선례 분석 알고리즘에 기초하여 실시간 탕감 한도를 산출합니다.'}
+                      : '실무 준칙 및 선례를 기반으로 실시간 탕감 한도를 산출해 냅니다.'}
                   </p>
                 </div>
                 <QualificationCheck
@@ -414,16 +490,8 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="bg-slate-100/50 py-10 md:py-16"
+                className="bg-slate-50/70 py-10 md:py-16 relative overflow-hidden"
               >
-                <div className="text-center mb-4 px-4">
-                  <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase bg-emerald-50 border border-emerald-200/50 px-3 py-1 rounded-full">
-                    ANALYSIS REPORT
-                  </span>
-                  <p className="text-xs text-slate-400 font-semibold mt-2">
-                    작성일: {new Date().toLocaleDateString('ko-KR')} | 보안등급: 기밀 안심 보고
-                  </p>
-                </div>
                 {userResponses && (
                   <ResultDashboard
                     responses={userResponses}
@@ -437,9 +505,11 @@ export default function App() {
         </div>
 
         {/* Permanent Premium Guidelines and Stories (Scroll Trigger Point) */}
-        <div ref={eligibilityRef} className="scroll-mt-16" id="brand">
-          <EligibilityNotes />
-        </div>
+        {!surveyActive && !caseMatcherActive && !planSimulatorActive && !userResponses && !adminPageActive && !brandPageActive && (
+          <div ref={eligibilityRef} className="scroll-mt-16" id="brand">
+            <EligibilityNotes />
+          </div>
+        )}
 
       </main>
 
@@ -450,14 +520,9 @@ export default function App() {
 
       {/* Floating Action Buttons Area */}
       <div
+        ref={consultationRef}
         className="fixed right-4 bottom-4 z-50 animate-fade-in flex flex-col items-end"
         id="floating-consultation-buttons"
-        onMouseEnter={() => setConsultationOpen(true)}
-        onMouseLeave={() => {
-          if (!submitSuccess && !isSubmitting && !privacyModalOpen) {
-            setConsultationOpen(false);
-          }
-        }}
       >
         {/* Expanded Consultation Request Card */}
         <AnimatePresence>
@@ -473,8 +538,8 @@ export default function App() {
               <div className="bg-indigo-950 p-4 font-sans text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div>
-                    <h4 className="text-xs sm:text-sm font-black text-white">실시간 상담 간편 예약</h4>
-                    <p className="text-[10px] text-zinc-300 font-medium">지정일 대표 법무사 직접 연락</p>
+                    <h4 className="text-sm sm:text-base font-black text-white">실시간 상담 간편 예약</h4>
+                    <p className="text-xs text-zinc-300 font-medium">지정일 대표 법무사 직접 연락</p>
                   </div>
                 </div>
                 <button
@@ -506,9 +571,9 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setReserveTab('phone')}
-                      className={`py-2 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      className={`py-2 px-1 rounded-lg text-sm sm:text-base font-black transition-all cursor-pointer ${
                         reserveTab === 'phone'
-                          ? 'bg-white text-slate-900 shadow-3xs'
+                          ? 'bg-slate-900 text-white shadow-3xs'
                           : 'text-slate-500 hover:text-slate-900'
                       }`}
                     >
@@ -517,7 +582,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setReserveTab('kakao')}
-                      className={`py-2 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      className={`py-2 px-1 rounded-lg text-sm sm:text-base font-black transition-all cursor-pointer ${
                         reserveTab === 'kakao'
                           ? 'bg-[#FEE500] text-slate-900 shadow-3xs'
                           : 'text-slate-500 hover:text-slate-900'
@@ -526,13 +591,6 @@ export default function App() {
                       💬 카톡상담 신청
                     </button>
                   </div>
-
-                  {/* Informative text depending on active tab */}
-                  <p className="text-[11px] text-slate-400 font-semibold leading-normal">
-                    {reserveTab === 'phone'
-                      ? '지정하신 예약 시간에 대표법무사가 직접 상담을 진행해 드립니다.'
-                      : '지정한 일시에 대표법무사가 카톡 일대일 상담을 진행해 드립니다.'}
-                  </p>
 
                   {/* Input: Phone number */}
                   <div className="space-y-1.5">
@@ -566,7 +624,7 @@ export default function App() {
                           setIsAsap(true);
                           setReserveError('');
                         }}
-                        className={`py-1.5 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-1 rounded-lg text-[13px] sm:text-sm font-black transition-all cursor-pointer ${
                           isAsap
                             ? 'bg-white text-slate-900 shadow-3xs'
                             : 'text-slate-500 hover:text-slate-900'
@@ -580,7 +638,7 @@ export default function App() {
                           setIsAsap(false);
                           setReserveError('');
                         }}
-                        className={`py-1.5 px-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-1 rounded-lg text-[13px] sm:text-sm font-black transition-all cursor-pointer ${
                           !isAsap
                             ? 'bg-white text-slate-900 shadow-3xs'
                             : 'text-slate-500 hover:text-slate-900'
@@ -595,7 +653,7 @@ export default function App() {
                   {isAsap ? (
                     <div className="p-3 bg-emerald-50/50 border border-emerald-100/60 rounded-xl text-[11px] sm:text-xs font-black text-emerald-800 flex items-center gap-2">
                       <span className="text-emerald-500 text-xs shrink-0">✔</span>
-                      <span>확인하는 즉시 가장 빠른 시간 내에 친절히 연락 드립니다!</span>
+                      <span>확인 즉시 빠른 시간내에 연락드립니다!</span>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
@@ -693,13 +751,13 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className={`w-full py-3 rounded-xl text-xs font-black text-center transition-all cursor-pointer shadow-md select-none ${
+                      className={`w-full py-3 rounded-xl text-sm sm:text-base font-black text-center transition-all cursor-pointer shadow-md select-none ${
                         reserveTab === 'phone'
                           ? 'bg-slate-900 text-white hover:bg-slate-800'
                           : 'bg-[#FEE500] text-slate-900 hover:bg-[#FADA0A]'
                       } disabled:opacity-50`}
                     >
-                      {isSubmitting ? '예약 접수 중...' : `${reserveTab === 'phone' ? '📞 실시간 전화상담 예약 완료' : '💬 실시간 카카오톡상담 예약 완료'}`}
+                      {isSubmitting ? '예약 접수 중...' : `${reserveTab === 'phone' ? '📞 전화 상담 예약 완료' : '💬 카카오톡 상담 예약 완료'}`}
                     </button>
                   </div>
                 </form>
@@ -711,17 +769,29 @@ export default function App() {
         {/* Floating Trigger Anchor Button */}
         <button
           onClick={() => setConsultationOpen(prev => !prev)}
-          className="flex items-center gap-2 px-5 py-3.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 select-none font-bold group cursor-pointer"
+          className={`flex items-center gap-2 px-5 py-3.5 border rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 select-none font-bold group cursor-pointer ${
+            isOverFooter
+              ? 'bg-amber-400 border-amber-300 text-slate-950 hover:bg-amber-350 hover:border-amber-200 shadow-[0_0_25px_rgba(251,191,36,0.25)]'
+              : 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800'
+          }`}
           title="여환동 법무사 실시간 1:1 상담신청 예약"
         >
           <div className="relative">
-            <MessageSquare className="w-5 h-5 text-emerald-400 stroke-[2.3] group-hover:rotate-12 transition-transform duration-300" />
+            <MessageSquare className={`w-5 h-5 stroke-[2.3] group-hover:rotate-12 transition-transform duration-300 ${
+              isOverFooter ? 'text-amber-950' : 'text-emerald-400'
+            }`} />
             <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                isOverFooter ? 'bg-amber-800' : 'bg-emerald-400'
+              }`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                isOverFooter ? 'bg-amber-900' : 'bg-emerald-500'
+              }`}></span>
             </span>
           </div>
-          <span className="text-xs sm:text-sm font-extrabold tracking-tight text-white pr-0.5">상담신청</span>
+          <span className={`text-xs sm:text-sm font-extrabold tracking-tight pr-0.5 ${
+            isOverFooter ? 'text-slate-950 font-black' : 'text-white'
+          }`}>상담신청</span>
         </button>
       </div>
 
