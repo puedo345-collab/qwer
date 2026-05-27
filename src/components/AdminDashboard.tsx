@@ -24,7 +24,9 @@ import {
   EyeOff, 
   MapPin, 
   RefreshCw,
-  X
+  X,
+  MessageCircle,
+  Bell
 } from "lucide-react";
 
 interface Submission {
@@ -68,6 +70,128 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   const [confirmPasswordVal, setConfirmPasswordVal] = useState("");
   const [changePasswordError, setChangePasswordError] = useState("");
   const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
+
+  // Kakao Channel URL Modal States
+  const [isKakaoUrlOpen, setIsKakaoUrlOpen] = useState(false);
+  const [kakaoUrlVal, setKakaoUrlVal] = useState("");
+  const [kakaoUrlError, setKakaoUrlError] = useState("");
+  const [kakaoUrlSuccess, setKakaoUrlSuccess] = useState("");
+
+  // Solapi SMS Alert Modal States
+  const [isSolapiOpen, setIsSolapiOpen] = useState(false);
+  const [solapiApiKey, setSolapiApiKey] = useState("");
+  const [solapiApiSecret, setSolapiApiSecret] = useState("");
+  const [solapiReceiverPhone, setSolapiReceiverPhone] = useState("");
+  const [solapiError, setSolapiError] = useState("");
+  const [solapiSuccess, setSolapiSuccess] = useState("");
+
+  const handleOpenSolapiModal = async () => {
+    setIsSolapiOpen(true);
+    setSolapiError("");
+    setSolapiSuccess("");
+    try {
+      const res = await fetch("/api/admin/solapi-config", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data) {
+        setSolapiApiKey(data.solapiApiKey || "");
+        setSolapiApiSecret(data.solapiApiSecret || "");
+        setSolapiReceiverPhone(data.solapiReceiverPhone || "");
+      }
+    } catch (err) {
+      console.error("Error fetching Solapi config:", err);
+    }
+  };
+
+  const handleUpdateSolapi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSolapiError("");
+    setSolapiSuccess("");
+
+    if (!solapiApiKey.trim() || !solapiApiSecret.trim() || !solapiReceiverPhone.trim()) {
+      setSolapiError("모든 항목을 올바르게 채워서 넣어 주십시오.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/solapi-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          solapiApiKey: solapiApiKey.trim(),
+          solapiApiSecret: solapiApiSecret.trim(),
+          solapiReceiverPhone: solapiReceiverPhone.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSolapiSuccess("솔라피 실시간 상담 예약 알림 설정이 완료되었습니다!");
+        setTimeout(() => {
+          setIsSolapiOpen(false);
+          setSolapiSuccess("");
+        }, 1800);
+      } else {
+        setSolapiError(data.error || "솔라피 설정 저장에 에러가 발생했습니다.");
+      }
+    } catch (err) {
+      setSolapiError("서버와 통신하는 동안 연결에 실패했습니다.");
+    }
+  };
+
+  const handleOpenKakaoUrlModal = async () => {
+    setIsKakaoUrlOpen(true);
+    setKakaoUrlError("");
+    setKakaoUrlSuccess("");
+    try {
+      const res = await fetch("/api/config");
+      const data = await res.json();
+      if (data && data.kakaoChannelUrl) {
+        setKakaoUrlVal(data.kakaoChannelUrl);
+      }
+    } catch (err) {
+      console.error("Error fetching config:", err);
+    }
+  };
+
+  const handleUpdateKakaoUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setKakaoUrlError("");
+    setKakaoUrlSuccess("");
+
+    if (!kakaoUrlVal.trim() || !kakaoUrlVal.trim().startsWith("http")) {
+      setKakaoUrlError("올바른 http/https 형식의 카카오 채널 주소를 기입해 주십시오.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/kakao-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ url: kakaoUrlVal.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setKakaoUrlSuccess("카카오톡 비즈니스 채널 주소가 안전하게 설정 변경되었습니다!");
+        setTimeout(() => {
+          setIsKakaoUrlOpen(false);
+          setKakaoUrlSuccess("");
+        }, 1800);
+      } else {
+        setKakaoUrlError(data.error || "카카오 채널 주소 저장 중 오류가 발생했습니다.");
+      }
+    } catch (err) {
+      setKakaoUrlError("네트워크 서버와 통신 도중 실패했습니다.");
+    }
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -476,6 +600,22 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   >
                     <Key className="w-4 h-4 text-emerald-400" />
                     비밀번호 변경
+                  </button>
+                   <button
+                    onClick={handleOpenKakaoUrlModal}
+                    className="p-3 bg-white/5 hover:bg-white/10 active:scale-95 text-amber-300 hover:text-amber-200 font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5 border border-white/5"
+                    title="카카오톡 1:1 상담 비즈니스 채널 주소 설정"
+                  >
+                    <MessageCircle className="w-4 h-4 text-amber-400" />
+                    카톡 채널 연동
+                  </button>
+                  <button
+                    onClick={handleOpenSolapiModal}
+                    className="p-3 bg-white/5 hover:bg-white/10 active:scale-95 text-sky-300 hover:text-sky-200 font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5 border border-white/5"
+                    title="실시간 상담 예약/종합 진단 제출 시 즉시 SMS 알림 발송 설정"
+                  >
+                    <Bell className="w-4 h-4 text-sky-450 text-sky-400 animate-pulse" />
+                    솔라피 알림 연동
                   </button>
                   <button
                     onClick={exportToCSV}
@@ -922,6 +1062,251 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                               className="flex-1 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 text-white font-extrabold rounded-xl text-xs shadow-md shadow-emerald-100 transition-colors cursor-pointer text-center"
                             >
                               변경 완료하기
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Kakao URL Setting Modal */}
+              <AnimatePresence>
+                {isKakaoUrlOpen && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 0.6 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => {
+                        setIsKakaoUrlOpen(false);
+                        setKakaoUrlError("");
+                      }}
+                      className="absolute inset-0 bg-slate-950"
+                    />
+
+                    {/* Modal Body */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                      className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative z-10 border border-slate-100 overflow-hidden text-slate-900"
+                    >
+                      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-505 to-yellow-500 bg-[#FEE500]" />
+                      
+                      <button
+                        onClick={() => {
+                          setIsKakaoUrlOpen(false);
+                          setKakaoUrlError("");
+                        }}
+                        className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        aria-label="닫기"
+                        type="button"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="space-y-4 pt-2">
+                        <div className="w-12 h-12 rounded-2xl bg-[#FEE500]/20 text-slate-800 flex items-center justify-center mx-auto sm:mx-0">
+                          <MessageCircle className="w-6 h-6 text-amber-600" />
+                        </div>
+
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-black tracking-tight text-slate-900 text-center sm:text-left">
+                            카카오톡 비즈니스 채널 연동
+                          </h3>
+                          <p className="text-xs text-slate-400 font-semibold leading-relaxed text-center sm:text-left">
+                            상담 신청 예약 완료 시 의뢰인들을 연동된 카카오톡 비즈니스 채널로 즉시 자동 연결시킵니다.
+                          </p>
+                        </div>
+
+                        <form onSubmit={handleUpdateKakaoUrl} className="space-y-4 pt-2">
+                          <div className="text-left">
+                            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                              카카오톡 채널 주소 (Kakao Link URL)
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="예: https://pf.kakao.com/_xcVaxj"
+                              value={kakaoUrlVal}
+                              onChange={(e) => setKakaoUrlVal(e.target.value)}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 text-sm font-semibold text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                              required
+                              autoFocus
+                            />
+                            <span className="block text-[10px] text-zinc-400 font-medium mt-1 leading-normal">
+                              * 법인/비즈니스 카카오 채널 주소를 기입하세요. (예: http://pf.kakao.com/_XXXX)
+                            </span>
+                          </div>
+
+                          {kakaoUrlError && (
+                            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold text-left leading-relaxed">
+                              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span>{kakaoUrlError}</span>
+                            </div>
+                          )}
+
+                          {kakaoUrlSuccess && (
+                            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2 text-emerald-800 text-xs font-bold text-left leading-relaxed">
+                              <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+                              <span>{kakaoUrlSuccess}</span>
+                            </div>
+                          )}
+
+                          <div className="pt-2 flex gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsKakaoUrlOpen(false);
+                                setKakaoUrlError("");
+                              }}
+                              className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer text-center"
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="submit"
+                              className="flex-1 py-3.5 bg-[#FEE500] hover:bg-[#FDD835] text-slate-900 font-black rounded-xl text-xs shadow-md transition-colors cursor-pointer text-center"
+                            >
+                              설정 저장하기
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Solapi SMS Alert Setting Modal */}
+              <AnimatePresence>
+                {isSolapiOpen && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 0.6 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => {
+                        setIsSolapiOpen(false);
+                        setSolapiError("");
+                      }}
+                      className="absolute inset-0 bg-slate-950"
+                    />
+
+                    {/* Modal Body */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                      className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative z-10 border border-slate-100 overflow-hidden text-slate-900"
+                    >
+                      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-sky-500 to-sky-600 bg-sky-500" />
+                      
+                      <button
+                        onClick={() => {
+                          setIsSolapiOpen(false);
+                          setSolapiError("");
+                        }}
+                        className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        aria-label="닫기"
+                        type="button"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="space-y-4 pt-2">
+                        <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto sm:mx-0">
+                          <Bell className="w-6 h-6 animate-swing" />
+                        </div>
+
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-black tracking-tight text-slate-900 text-center sm:text-left">
+                            솔라피(Solapi) SMS 알림 연동
+                          </h3>
+                          <p className="text-xs text-slate-400 font-semibold leading-relaxed text-center sm:text-left">
+                            의뢰인이 간편 상담 예약에 일시 지정을 완료하거나 종합 진단을 제출하면, 설정하신 관리자 연락처로 실시간 상세 정보 알림이 문자/카톡 형태로 발송됩니다.
+                          </p>
+                        </div>
+
+                        <form onSubmit={handleUpdateSolapi} className="space-y-4 pt-2 text-left">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                              솔라피 API Key (API_KEY)
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="예: NCSOQLMBYMAXFE8U"
+                              value={solapiApiKey}
+                              onChange={(e) => setSolapiApiKey(e.target.value)}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm font-semibold text-slate-900 outline-none transition-all placeholder:text-slate-350"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                              솔라피 Secret Key
+                            </label>
+                            <input
+                              type="password"
+                              placeholder="예: 7SQ1OC8T3OE7LXBHAS..."
+                              value={solapiApiSecret}
+                              onChange={(e) => setSolapiApiSecret(e.target.value)}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm font-semibold text-slate-900 outline-none transition-all placeholder:text-slate-350"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                              알림 전송 수신처 번호
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="예: 010-5410-5679"
+                              value={solapiReceiverPhone}
+                              onChange={(e) => setSolapiReceiverPhone(e.target.value)}
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm font-semibold text-slate-900 outline-none transition-all placeholder:text-slate-350"
+                              required
+                            />
+                            <span className="block text-[10px] text-zinc-400 font-medium mt-1 leading-normal">
+                              * 이 발송 수신 번호는 솔라피 계정에 발신번호(Sender ID)로 등록이 완료된 상태여야 정상 전송됩니다.
+                            </span>
+                          </div>
+
+                          {solapiError && (
+                            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold text-left leading-relaxed">
+                              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span>{solapiError}</span>
+                            </div>
+                          )}
+
+                          {solapiSuccess && (
+                            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2 text-emerald-800 text-xs font-bold text-left leading-relaxed">
+                              <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+                              <span>{solapiSuccess}</span>
+                            </div>
+                          )}
+
+                          <div className="pt-2 flex gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsSolapiOpen(false);
+                                setSolapiError("");
+                              }}
+                              className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer text-center"
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="submit"
+                              className="flex-1 py-3.5 bg-sky-550 bg-sky-600 hover:bg-sky-500 text-white font-extrabold rounded-xl text-xs shadow-md transition-colors cursor-pointer text-center"
+                            >
+                              알림 설정 저장
                             </button>
                           </div>
                         </form>

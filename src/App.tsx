@@ -25,10 +25,25 @@ export default function App() {
 
   const getTodayDateString = () => {
     const today = new Date();
+    // Office hours typically end around 19:00. If later, default to tomorrow.
+    if (today.getHours() >= 19) {
+      today.setDate(today.getDate() + 1);
+    }
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const getDefaultTime = () => {
+    const now = new Date();
+    let hours = now.getHours() + 1;
+    if (hours < 9) {
+      hours = 9;
+    } else if (hours > 19) {
+      hours = 10; // next day morning
+    }
+    return `${String(hours).padStart(2, '0')}:00`;
   };
 
   // Floating consultation reservation states
@@ -37,19 +52,32 @@ export default function App() {
   const [reservePhone, setReservePhone] = useState('');
   const [isAsap, setIsAsap] = useState(true);
   const [reserveDate, setReserveDate] = useState(getTodayDateString());
-  const [reserveTime, setReserveTime] = useState('14:00');
+  const [reserveTime, setReserveTime] = useState(getDefaultTime());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [reserveAgree, setReserveAgree] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [reserveError, setReserveError] = useState('');
+  const [kakaoChannelUrl, setKakaoChannelUrl] = useState('http://pf.kakao.com/_xhTqgG/chat');
+
+  // Load custom configuration on mount
+  React.useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data.kakaoChannelUrl) {
+          setKakaoChannelUrl(data.kakaoChannelUrl);
+        }
+      })
+      .catch(err => console.error("Error loading config:", err));
+  }, []);
 
   // Reset reservation date & time to today & default when opening the card
   React.useEffect(() => {
     if (consultationOpen) {
       setIsAsap(true);
       setReserveDate(getTodayDateString());
-      setReserveTime('14:00');
+      setReserveTime(getDefaultTime());
       setReserveAgree(false);
       setReserveError('');
     }
@@ -79,14 +107,23 @@ export default function App() {
     }
 
     if (!reserveAgree) {
-      setReserveError('개인정보 수집및 이용에 동의해야 실시간 상담이 가능합니다.');
+      setReserveError('개인정보 수집 및 이용에 동의해야 실시간 상담이 가능합니다.');
       return;
     }
 
     // Past date/time validation
     if (!isAsap) {
+      if (!reserveDate) {
+        setReserveError('예약 날짜를 선택해 주세요.');
+        return;
+      }
+      const parts = reserveDate.split('-');
+      if (parts.length !== 3) {
+        setReserveError('올바른 예약 날짜 형식이 아닙니다.');
+        return;
+      }
       const now = new Date();
-      const [yearStr, monthStr, dayStr] = reserveDate.split('-');
+      const [yearStr, monthStr, dayStr] = parts;
       const [hourStr, minStr] = reserveTime.split(':');
       const selectedDateTime = new Date(
         parseInt(yearStr, 10),
@@ -120,21 +157,34 @@ export default function App() {
       },
       body: JSON.stringify(postData)
     })
-      .then(res => res.json())
+      .then(async res => {
+        let errMessage = '상담 예약 도중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        if (!res.ok) {
+          try {
+            const errData = await res.json();
+            if (errData && errData.error) {
+              errMessage = errData.error;
+            }
+          } catch (_) {
+            try {
+              const text = await res.text();
+              if (text) errMessage = text;
+            } catch (__) {}
+          }
+          throw new Error(errMessage);
+        }
+        return res.json();
+      })
       .then(data => {
         console.log('Reservation synced successfully:', data);
         setIsSubmitting(false);
         setSubmitSuccess(true);
         setReservePhone('');
-        setTimeout(() => {
-          setSubmitSuccess(false);
-          setConsultationOpen(false);
-        }, 3500);
       })
       .catch(err => {
         console.error('Error saving reservation:', err);
         setIsSubmitting(false);
-        setReserveError('상담 예약 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        setReserveError(err.message || '상담 예약 중 오류가 발생했습니다. 다시 시도해 주세요.');
       });
   };
 
@@ -562,6 +612,26 @@ export default function App() {
                     <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                       지정하신 시간에 대표 법무사가 남겨주신 연락처로 정성을 다하여 연락드리겠습니다.
                     </p>
+                    <div className="pt-4 pb-1 flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubmitSuccess(false);
+                          setConsultationOpen(false);
+                        }}
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold rounded-xl text-xs transition-colors cursor-pointer text-center"
+                      >
+                        확인
+                      </button>
+                      <a
+                        href={kakaoChannelUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-slate-900 rounded-xl text-xs font-black shadow-xs transition-colors cursor-pointer"
+                      >
+                        💬 카카오톡 대표 채널 직접 연결하기
+                      </a>
+                    </div>
                   </div>
                 </div>
               ) : (

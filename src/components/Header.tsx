@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Menu, X, Scale, Camera } from 'lucide-react';
+import { ShieldCheck, Menu, X, Scale } from 'lucide-react';
 
 interface HeaderProps {
   onNavClick: (section: string) => void;
@@ -8,9 +8,7 @@ interface HeaderProps {
 
 export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [logoImg, setLogoImg] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   React.useEffect(() => {
     // Load custom logo on mount
@@ -23,75 +21,6 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
       })
       .catch((err) => console.error("Error loading logo:", err));
   }, []);
-
-  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64String = event.target?.result as string;
-      if (!base64String) {
-        setUploading(false);
-        return;
-      }
-
-      const img = new Image();
-      img.src = base64String;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_SIZE = 120; // 120px fits perfectly in header icon container
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height = height * (MAX_SIZE / width);
-            width = MAX_SIZE;
-          }
-        } else {
-          if (height > MAX_SIZE) {
-            width = width * (MAX_SIZE / height);
-            height = MAX_SIZE;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/png'); // Preserve transparent logo backgrounds
-          
-          fetch('/api/logo-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: compressedDataUrl })
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                setLogoImg(compressedDataUrl);
-              } else {
-                alert("로고 등록 실패: " + data.error);
-              }
-            })
-            .catch((err) => {
-              console.error("Logo upload error:", err);
-              alert("서버 통신 실패");
-            })
-            .finally(() => {
-              setUploading(false);
-            });
-        } else {
-          setUploading(false);
-        }
-      };
-    };
-    reader.readAsDataURL(file);
-  };
 
   const navItems = [
     { id: 'brand', label: '법무사 소개' },
@@ -108,16 +37,12 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
           <div className="flex items-center gap-3 select-none">
             <div 
               id="header-logo-container"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-              className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer group overflow-hidden ${
+              onClick={() => onNavClick('hero')}
+              className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer overflow-hidden ${
                 logoImg 
                   ? 'bg-transparent border border-transparent' 
                   : 'bg-slate-900 border border-slate-800 text-amber-400 shadow-sm'
               }`}
-              title="클릭하여 새로운 로고 이미지 업로드"
             >
               {logoImg ? (
                 <img 
@@ -128,27 +53,7 @@ export default function Header({ onNavClick, onStartSurvey }: HeaderProps) {
               ) : (
                 <Scale className="w-5 h-5 stroke-[2.2]" />
               )}
-              
-              {/* Subtle Camera Hover Indicator */}
-              <div className="absolute inset-0 bg-slate-950/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Camera className="w-4 h-4 text-white" />
-              </div>
-              
-              {uploading && (
-                <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center">
-                  <div className="w-4 h-4 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
             </div>
-
-            {/* Hidden Input for Logo File Upload */}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleLogoChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
 
             <div 
               className="flex flex-col cursor-pointer" 

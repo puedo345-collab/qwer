@@ -10,9 +10,7 @@ import {
   Clock, 
   FileCheck, 
   ThumbsUp, 
-  Briefcase,
-  Camera,
-  UploadCloud
+  Briefcase
 } from 'lucide-react';
 
 interface LawyerIntroductionProps {
@@ -21,9 +19,7 @@ interface LawyerIntroductionProps {
 }
 
 export default function LawyerIntroduction({ onBack, onStartSurvey }: LawyerIntroductionProps) {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [imgSrc, setImgSrc] = React.useState<string>('/src/lawyer_yeo.jpg');
-  const [uploading, setUploading] = React.useState(false);
   const [fallbackIndex, setFallbackIndex] = React.useState(0);
 
   const fallbacks = [
@@ -46,74 +42,6 @@ export default function LawyerIntroduction({ onBack, onStartSurvey }: LawyerIntr
       })
       .catch((err) => console.error("Error loading profile image:", err));
   }, []);
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64String = event.target?.result as string;
-      if (!base64String) {
-        setUploading(false);
-        return;
-      }
-
-      const img = new Image();
-      img.src = base64String;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 600;
-        const scaleSize = MAX_WIDTH / img.width;
-        
-        let width = img.width;
-        let height = img.height;
-        
-        if (img.width > MAX_WIDTH) {
-          width = MAX_WIDTH;
-          height = img.height * scaleSize;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          
-          fetch('/api/profile-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: compressedDataUrl })
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                setImgSrc(compressedDataUrl);
-              } else {
-                alert("이미지 처리중 오류가 발생했습니다: " + data.error);
-              }
-            })
-            .catch((err) => {
-              console.error("Upload error:", err);
-              alert("서버 통신 실패");
-            })
-            .finally(() => {
-              setUploading(false);
-            });
-        } else {
-          setUploading(false);
-        }
-      };
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleImageError = () => {
     if (imgSrc.startsWith('data:')) {
@@ -252,32 +180,15 @@ export default function LawyerIntroduction({ onBack, onStartSurvey }: LawyerIntr
             {/* Representative lawyer profile photo card */}
             <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-xs flex flex-col">
               <div 
-                onClick={handleImageClick}
-                className="relative aspect-[3/4] w-full bg-slate-100 overflow-hidden cursor-pointer group"
+                className="relative aspect-[3/4] w-full bg-slate-100 overflow-hidden"
               >
                 <img
                   src={imgSrc}
                   alt="대표 법무사 여환동"
                   onError={handleImageError}
-                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
-                
-                {/* Elegant Camera Upload Hover Overlay */}
-                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2 p-4">
-                  <div className="p-3 bg-white/20 rounded-full backdrop-blur-xs">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="text-xs font-black tracking-wide">실제 프로필 사진 등록하기</span>
-                  <span className="text-[10px] text-slate-300 font-bold">클릭하여 사진 첨부</span>
-                </div>
-
-                {uploading && (
-                  <div className="absolute inset-0 bg-slate-900/70 flex flex-col items-center justify-center text-white gap-2">
-                    <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[11px] font-bold">사진 등록 중...</span>
-                  </div>
-                )}
 
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent p-5 text-white pointer-events-none">
                   <span className="text-[10px] bg-emerald-500 font-extrabold px-2 py-0.5 rounded text-white uppercase tracking-wider">대표 법무사</span>
@@ -286,23 +197,6 @@ export default function LawyerIntroduction({ onBack, onStartSurvey }: LawyerIntr
                 </div>
               </div>
               <div className="p-5.5 space-y-4">
-                {/* Hidden File Input */}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept="image/*" 
-                  className="hidden" 
-                />
-
-                <button
-                  onClick={handleImageClick}
-                  disabled={uploading}
-                  className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100/70 text-emerald-700 rounded-2xl flex items-center justify-center gap-2 text-xs font-extrabold transition-colors cursor-pointer"
-                >
-                  <Camera className="w-4 h-4" />
-                  실제 프로필 사진 올리기 / 바꾸기
-                </button>
                 <div className="space-y-2">
                   <span className="block text-[11px] text-slate-400 font-extrabold tracking-wider uppercase">전문 분야 및 안내</span>
                   <p className="text-xs text-slate-600 font-bold leading-relaxed font-sans">

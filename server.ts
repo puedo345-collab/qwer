@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -134,11 +135,207 @@ async function startServer() {
     return process.env.ADMIN_PASSWORD || "1234";
   };
 
+  // Helper middleware to verify token (basic Base64 authorization match)
+  const verifyAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ error: "권한이 없습니다. 로그인이 필요합니다." });
+      return;
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    try {
+      const decoded = Buffer.from(token, "base64").toString("utf-8");
+      if (decoded === getAdminPassword()) {
+        next();
+      } else {
+        res.status(403).json({ error: "세션이 만료되었거나 권한이 맞지 않습니다." });
+      }
+    } catch {
+      res.status(400).json({ error: "유효하지 않은 보안 토큰 방식입니다." });
+    }
+  };
+
+  // Helper function to send simple SMS alert via Solapi
+  const sendSolapiSms = async (text: string): Promise<boolean> => {
+    try {
+      if (!fs.existsSync(ADMIN_CONFIG_PATH)) {
+        console.log("[Solapi] Configuration file not found. Skipping send.");
+        return false;
+      }
+      const configData = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      const apiKey = configData.solapiApiKey || "NCSILNXQCTP5G38I";
+      const apiSecret = configData.solapiApiSecret || "WP9OAFRBQNU9XZRXWCU7OHGOBCTH8JKB";
+      const receiverPhone = configData.solapiReceiverPhone || "01054105679";
+
+      if (!apiKey || !apiSecret || !receiverPhone) {
+        console.log("[Solapi] Credentials or recipient phone not configured. Skipping.", { apiKey, receiverPhone });
+        return false;
+      }
+
+      const cleanPhone = receiverPhone.replace(/[^0-9]/g, "");
+      if (!cleanPhone) {
+        console.log("[Solapi] Recipient phone empty after sanitization.");
+        return false;
+      }
+
+      // Solapi HMAC v4 authentication signatures
+      const date = new Date().toISOString();
+      const salt = crypto.randomBytes(16).toString("hex");
+      const signature = crypto
+        .createHmac("sha256", apiSecret)
+        .update(date + salt)
+        .digest("hex");
+
+      const authHeaderValue = `HMACS256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
+
+      // Payload for single transmission
+      const payload = {
+        message: {
+          to: cleanPhone,
+          from: cleanPhone, // Registered sender ID in Solapi setting (usually user's same number)
+          text: text
+        }
+      };
+
+      console.log(`[Solapi] Standard single dispatch triggered to ${cleanPhone}:`, text);
+
+      // We'll perform standard POST request
+      const response = await fetch("https://api.solapi.com/messages/v4/send", {
+        method: "POST",
+        headers: {
+          "Authorization": authHeaderValue,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorDetail = await response.text();
+        console.warn(`[Solapi] Single dispatch failed (Status: ${response.status}). Trying send-many payload:`, errorDetail);
+
+        // Fallback option: Use send-many endpoint if single /send is rejected
+        const fallbackPayload = {
+          messages: [
+            {
+              to: cleanPhone,
+              from: cleanPhone,
+              text: text
+            }
+          ]
+        };
+
+        const fallbackResponse = await fetch("https://api.solapi.com/messages/v4/send-many", {
+          method: "POST",
+          headers: {
+            "Authorization": authHeaderValue,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(fallbackPayload)
+        });
+
+        if (!fallbackResponse.ok) {
+          const fallbackErr = await fallbackResponse.text();
+          console.error(`[Solapi] Fallback dispatch also failed (Status: ${fallbackResponse.status}):`, fallbackErr);
+          return false;
+        }
+
+        const fbData = await fallbackResponse.json();
+        console.log("[Solapi] Fallback SMS alert completed successfully:", fbData);
+        return true;
+      }
+
+      const resData = await response.json();
+      console.log("[Solapi] SMS alert completed successfully:", resData);
+      return true;
+    } catch (e) {
+      console.error("[Solapi] Critical error occurred on dispatching SMS notification:", e);
+      return false;
+    }
+  };
+
+  // API: Get Solapi configuration
+  app.get("/api/admin/solapi-config", verifyAdmin, (req, res) => {
+    try {
+      let configData: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configData = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      res.json({
+        solapiApiKey: configData.solapiApiKey || "NCSILNXQCTP5G38I",
+        solapiApiSecret: configData.solapiApiSecret || "WP9OAFRBQNU9XZRXWCU7OHGOBCTH8JKB",
+        solapiReceiverPhone: configData.solapiReceiverPhone || "01054105679"
+      });
+    } catch (err) {
+      console.error("[getSolapiConfig] Error:", err);
+      res.status(500).json({ error: "솔라피 설정을 불러오는 도중 오류가 발생했습니다." });
+    }
+  });
+
+  // API: Update Solapi configuration
+  app.post("/api/admin/solapi-config", verifyAdmin, (req, res) => {
+    const { solapiApiKey, solapiApiSecret, solapiReceiverPhone } = req.body;
+    if (!solapiApiKey || !solapiApiSecret || !solapiReceiverPhone) {
+      res.status(400).json({ error: "모든 항목을 올바르게 기입해 주세요." });
+      return;
+    }
+
+    try {
+      let configObj: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configObj = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      configObj.solapiApiKey = solapiApiKey.trim();
+      configObj.solapiApiSecret = solapiApiSecret.trim();
+      configObj.solapiReceiverPhone = solapiReceiverPhone.replace(/[^0-9]/g, "");
+
+      fs.writeFileSync(ADMIN_CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf-8");
+      res.json({ success: true, message: "솔라피 알림 설정이 안전하게 업데이트 되었습니다." });
+    } catch (err) {
+      console.error("[saveSolapiConfig] Error:", err);
+      res.status(500).json({ error: "솔라피 설정을 저장하는 도중 서버 오류가 발생했습니다." });
+    }
+  });
+
   // API: Get App configuration info
   app.get("/api/config", (req, res) => {
+    let kakaoChannelUrl = "http://pf.kakao.com/_xhTqgG/chat";
+    try {
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        const configData = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+        if (configData && configData.kakaoChannelUrl) {
+          kakaoChannelUrl = configData.kakaoChannelUrl;
+        }
+      }
+    } catch (err) {
+      console.error("[getConfig] Error reading config:", err);
+    }
     res.json({
       hasAdminPasswordConfigured: true,
+      kakaoChannelUrl,
     });
+  });
+
+  // API: Update Kakao Channel URL (Protected)
+  app.post("/api/admin/kakao-url", verifyAdmin, (req, res) => {
+    const { url } = req.body;
+    if (!url || typeof url !== "string" || !url.startsWith("http")) {
+      res.status(400).json({ error: "올바른 http/https 형식의 카카오 채널 URL을 입력해 주세요." });
+      return;
+    }
+
+    try {
+      let configObj: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configObj = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      configObj.kakaoChannelUrl = url.trim();
+      fs.writeFileSync(ADMIN_CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf-8");
+      res.json({ success: true, message: "카카오톡 채널 연동 주소가 안전하게 변경되었습니다." });
+    } catch (err) {
+      console.error("[changeKakaoUrl] Error:", err);
+      res.status(500).json({ error: "설정 저장 도중 서버 에러가 발생했습니다." });
+    }
   });
 
   // API: Get lawyer profile image
@@ -228,27 +425,6 @@ async function startServer() {
     }
   });
 
-  // Helper middleware to verify token (basic Base64 authorization match)
-  const verifyAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      res.status(401).json({ error: "권한이 없습니다. 로그인이 필요합니다." });
-      return;
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    try {
-      const decoded = Buffer.from(token, "base64").toString("utf-8");
-      if (decoded === getAdminPassword()) {
-        next();
-      } else {
-        res.status(403).json({ error: "세션이 만료되었거나 권한이 맞지 않습니다." });
-      }
-    } catch {
-      res.status(400).json({ error: "유효하지 않은 보안 토큰 방식입니다." });
-    }
-  };
-
   // API: Change admin password (Protected)
   app.post("/api/admin/change-password", verifyAdmin, (req, res) => {
     const { newPassword } = req.body;
@@ -258,7 +434,11 @@ async function startServer() {
     }
 
     try {
-      const configObj = { adminPassword: newPassword.trim() };
+      let configObj: any = {};
+      if (fs.existsSync(ADMIN_CONFIG_PATH)) {
+        configObj = JSON.parse(fs.readFileSync(ADMIN_CONFIG_PATH, "utf-8"));
+      }
+      configObj.adminPassword = newPassword.trim();
       fs.writeFileSync(ADMIN_CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf-8");
       res.json({ success: true, message: "비밀번호가 안전하게 변경되었습니다. 다시 로그인 하십시오." });
     } catch (err) {
@@ -300,6 +480,21 @@ async function startServer() {
 
     list.unshift(newSubmission); // prepend so newest is first
     writeSubmissions(list);
+
+    // Send instant SMS notification to administrator securely via Solapi (non-blocking)
+    let smsText = "";
+    if (isSimple) {
+      const typeLabel = (body.difficulties && body.difficulties[0]) ? body.difficulties[0] : "실시간간편예약";
+      const notes = body.counselorNotes || "";
+      const cleanedNotes = notes.replace("[실시간 간편 예약]\n", "").replace("[실시간 간편 예약]", "").trim();
+      smsText = `[실시간상담 간편예약 접수]\n상담 구분: ${typeLabel}\n의뢰인 연락처: ${body.phone}\n상세 내용:\n${cleanedNotes}`;
+    } else {
+      smsText = `[종합 실시간 자가진단 접수]\n의뢰인 성함: ${body.name}\n의뢰인 연락처: ${body.phone}\n상태: 신청완료 수령`;
+    }
+
+    sendSolapiSms(smsText).catch(err => {
+      console.error("[Solapi] Failed to send background SMS alert:", err);
+    });
 
     res.status(201).json({ success: true, submissionId: newId });
   });
